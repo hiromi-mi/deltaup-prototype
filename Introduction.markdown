@@ -46,13 +46,13 @@
 また、バイナリ差分を用いたソフトウエア更新ファイル配布高速化の観点から、Android の APK ファイルの最適な配布方法を探す取り組みが行なわれている。例えば 論文 [3] DELTA では, APK ファイルの内部構造を分割して差分を適用することで、APKファイルの配布を高速化している。
 
 ## 期待される効果
-### ソフトウエア差分更新機構の普及が期待できる。
+### ソフトウエア差分更新機構の普及
 - 例えば Arch Linux の pacman には差分更新機構が一時期存在したが、使われずメンテナンスがなされてないとして削除された。それは Arch Linux の 更新機構では高々3割程度の通信量削減にしかつながらず、サーバー側を対応させるほどの魅力的なものにならなかったことが一因と考えている。以上のようにより魅力的にすれば多少なりともユーザーがついてくるのではと考える。
 
 - スマートフォンデバイスなどの脆弱性修正の迅速化。
 従量制通信などでは更新ファイルをダウンロードしない選択肢が広く用いられているが、各種アプリなどのソフトウエアアップデートでの修正パッチ配布を遅らせていることになる。この選択肢が広く用いられている一因にはパッケージ更新により多量の通信が発生し、それにより請求額が高額になることがある。通信料を減らせれば、より多くのユーザーが迅速に更新を適用し、よりセキュアになることが期待される。
 
 参考文献
-[1] Courgette https://www.chromium.org/developers/design-documents/software-updates-courgette 
-[2] G. Motta, J. Gustafson and S. Chen, "Differential Compression of Executable Code," 2007 Data Compression Conference (DCC'07), Snowbird, UT, 2007, pp. 103-112, doi: 10.1109/DCC.2007.32.
-[3] R. Spolaor, E. D. Santo and M. Conti, "DELTA: Data Extraction and Logging Tool for Android," in IEEE Transactions on Mobile Computing, vol. 17, no. 6, pp. 1289-1302, 1 June 2018, doi: 10.1109/TMC.2017.2762692.
+* [1] Courgette https://www.chromium.org/developers/design-documents/software-updates-courgette 
+* [2] G. Motta, J. Gustafson and S. Chen, "Differential Compression of Executable Code," 2007 Data Compression Conference (DCC'07), Snowbird, UT, 2007, pp. 103-112, doi: 10.1109/DCC.2007.32.
+* [3] R. Spolaor, E. D. Santo and M. Conti, "DELTA: Data Extraction and Logging Tool for Android," in IEEE Transactions on Mobile Computing, vol. 17, no. 6, pp. 1289-1302, 1 June 2018, doi: 10.1109/TMC.2017.2762692.
