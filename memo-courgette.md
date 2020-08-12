@@ -1,6 +1,7 @@
 # Cougette で迷子にならない
 
-## 用語説明 @ image_utils.c
+## 用語説明 
+`image_utils.c` より引用
 * RVA: 相対仮想アドレス
 * VA: 仮想アドレス <- OS によるRelocation による
 * abs32: In an image these are directly stored as VA whose locations are
@@ -8,37 +9,27 @@
 * rel32: In an image these appear in branch/call opcodes, and are represented
   as offsets from an instruction address.
 
-## パッチ生成
-`courgette/courgette_tool.cc` GenerateEnsemblePatch がスタートポイント
-old, new のStream をそれぞれdefして初期化する
+## クラス説明
+* Stream
+* Sink
+* Regionは メモリ領域を記述する; start address と bytes と length measurement が必要
+* Element は Ensemble のリージョンでExecutable Type = win32, elf32, win32を持ったもの
 
-ストリームの長さを定義している.
-
-その後同名の courgett::GenerateEnsemblePatch してその結果を Status に返してる
-"Sink" を Patch の Streami にしてファイル書込み
-
--> GenerateEnsemblePatch @ `ensemble_create.cc` に移行
-
-- Region を定義してる; これは流さと幅でdef
-- Region は メモリ領域を記述する; start address と bytes と length measurement が必要
-- Element は Ensemble のリージョンでExecutable Type = win32, elf32, win32を持ったもの
-
-- TransformationPatchGenerator: 
+### 各種generator
 - MakeGenerator: @ `ensemble_create.cc` で win32 なものを生成した
-- FindGenerator @ `ensemble_create.cc` : TransformationPatchGenerators を発見して第一近傍をみ
+- FindGenerator @ `ensemble_create.cc` : TransformationPatchGenerators を発見して第一近傍をみつける
 
+## 概要
+`courgette/courgette_tool.cc` GenerateEnsemblePatch がスタートポイント
 
-### 間に `patch_generator_x86_32.h` を見にいく
+"Sink" を Patch の Streami にしてファイル書込みしてGenerateEnsemblePatch @ `ensemble_create.cc` に移行
 "Transform Method" : 入力Method を bsddiff が小さくなるように変形
 1. disassbble (新旧を AssemblyProgram に直す)
 2.  adjst (AssemblyProgram object を作成
 3.  encode (AssemblyProgram を raw bytes に直す)
 
 ## 1. Disassemble
-これは DisassembleCourgerette プログラムとかを使う
-DisassembleAndAdjust() を見るんhaHayaSoul
-flow を使うのがいいらしい
-
+DisassembleCourgerette
 
 入力はinput pointer の raw file (ほんまか？？？)
 Disassembly で 特定の machine instruction を Courgette instruction に直してる
