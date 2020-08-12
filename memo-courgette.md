@@ -1,24 +1,23 @@
 # Cougette で迷子にならない
 
-用語説明 @ image_utils.c
-RVA: 相対仮想アドレス
-VA: 仮想アドレス <- OS によるRelocation による
-// - abs32: In an image these are directly stored as VA whose locations are
-//   stored in the relocation table.
-// - rel32: In an image these appear in branch/call opcodes, and are represented
-//   as offsets from an instruction address.
+## 用語説明 @ image_utils.c
+* RVA: 相対仮想アドレス
+* VA: 仮想アドレス <- OS によるRelocation による
+* abs32: In an image these are directly stored as VA whose locations are
+  stored in the relocation table.
+* rel32: In an image these appear in branch/call opcodes, and are represented
+  as offsets from an instruction address.
 
-まず処理方法は courgette/description.md を参照
-
-1. パッチ生成
+## パッチ生成
 `courgette/courgette_tool.cc` GenerateEnsemblePatch がスタートポイント
 old, new のStream をそれぞれdefして初期化する
 
-ストリームの流さをdef jsしてる
+ストリームの長さを定義している.
+
 その後同名の courgett::GenerateEnsemblePatch してその結果を Status に返してる
 "Sink" を Patch の Streami にしてファイル書込み
 
-i-> GenerateEnsemblePatch @ `ensemble_create.cc` に移行
+-> GenerateEnsemblePatch @ `ensemble_create.cc` に移行
 
 - Region を定義してる; これは流さと幅でdef
 - Region は メモリ領域を記述する; start address と bytes と length measurement が必要
@@ -29,11 +28,11 @@ i-> GenerateEnsemblePatch @ `ensemble_create.cc` に移行
 - FindGenerator @ `ensemble_create.cc` : TransformationPatchGenerators を発見して第一近傍をみ
 
 
-## この間に `patch_generator_x86_32.h` を見にいったほうがいい
+### 間に `patch_generator_x86_32.h` を見にいく
 "Transform Method" : 入力Method を bsddiff が小さくなるように変形
-1) disassbble (新旧を AssemblyProgram に直す)
-2) adjst (AssemblyProgram object を作成
-3) encode (AssemblyProgram を raw bytes に直す)
+1. disassbble (新旧を AssemblyProgram に直す)
+2.  adjst (AssemblyProgram object を作成
+3.  encode (AssemblyProgram を raw bytes に直す)
 
 ## 1. Disassemble
 これは DisassembleCourgerette プログラムとかを使う
@@ -63,12 +62,16 @@ kind: OOS とかの種類
 - OS依存、abs32, rel32 でやる
 
 ### DisasesmblerWin32; ReadHeader
+Header 読み込み.
 ### DisasesmblerWin32; ParseRelocs
 
 実際に Relocation 情報を展開してる
+
+```
 272       // Skip the relocs that live outside of the image. It might be the case
 273       // if a reloc is relative to a register, e.g.:
 274       //     mov    ecx,dword ptr [eax+044D5888h]
+```
 
 
 ### DisasesmblerWin32; QuickDetect
@@ -83,9 +86,8 @@ Section を1つづつ見つけて
 Section, start_file, end_file, receptor とってきてる
 ポインナをRVAにして
 Origin を得ているか把握して
-DECHK
 
-## ヒストグラム機能, DescribeRVAがあるらしい
+### ヒストグラム機能, DescribeRVAがあるらしい
 
 RVAtoFileOffset このあたりは AddressTranslator にある
 1) FileOffsetToRVA にする
@@ -101,11 +103,9 @@ PointerToTargetRVA: Read32LittleEndian だった
 
 Rel32 だと4バイト後をとってきてる？ RvaVvisitor_Rel32::Get()
 
-
 ## Adjust
 AssemblyProgram を実際のAddress とのMap を作るらしい
-
-Weighting Matching at `adjustment_method_2.cc` 長文説明がある
+Weighting Matching at `adjustment_method_2.cc` に長文説明があるのでそれを参照. 以下翻訳.
 
 Seq1 A1 model : A, B, C
 Sequence 2 A2: program U, V, W
