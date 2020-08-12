@@ -75,10 +75,8 @@ Section を1つづつ見つけて
 
 ### DisasesmblerWin32; ParseFileRegion
 Section, start_file, end_file, receptor とってきてる
-ポインナをRVAにして
-Origin を得ているか把握して
 
-### ヒストグラム機能, DescribeRVAがあるらしい
+なお、ヒストグラム機能, DescribeRVAがあるらしい
 
 RVAtoFileOffset このあたりは AddressTranslator にある
 1) FileOffsetToRVA にする
@@ -95,8 +93,38 @@ PointerToTargetRVA: Read32LittleEndian だった
 Rel32 だと4バイト後をとってきてる？ RvaVvisitor_Rel32::Get()
 
 ## Adjust
+
+adjustment method は `adjustment_method.cc` と `adjustment_method_2.cc` (!) に記載されている.
+
+`adjustment_method` に含まれているのは以下の通り.
+###LabelInfo ラベル情報
+双方向線形リスト. アドレスの上下で並んでいる.
+* `is_model_`: モデルに入っているか
+* `refs`: 参照回数
+* positions (ラベルを参照するposition のリスト)
+
+### Graph Matching Assignment
+ふつうにやると指数時間かかるが、eager matching により実用的に.
+
+* strongest match はプログラムの特定ラベルへの参照数が変化しない, RVA のずれは同一
+* ラベル同士の対応がつくと、対応するラベルの近くのラベルも似ている可能性が高い : TryExtendAssignment, TryExtendSequence..
+* 2つのラベルが対応していると, ???
+```
+//  * If two labels correspond, then we can try to match up the references
+//    before and after the labels in the reference stream.  For this to be
+//    practical, the number of references has to be small, e.g. each label has
+//    exactly one reference.
+```
+@ `adjustment_method.cc` l.119
+よくわからない
+
+### AssignmentProblem: 上のGraph Matching を実際に実装
+このグラフ構造は LabelInfo を枝としてもつ.
+TrySolveNode() にて貪欲法をそれぞれの node に対して適用
+
+##  adjustment_method_2.cc
 AssemblyProgram を実際のAddress とのMap を作るらしい
-Weighting Matching at `adjustment_method_2.cc` に長文説明があるのでそれを参照. 以下翻訳.
+`adjustment_method_2.cc` に長文説明があるのでそれを参照. 以下翻訳.
 
 Seq1 A1 model : A, B, C
 Sequence 2 A2: program U, V, W
