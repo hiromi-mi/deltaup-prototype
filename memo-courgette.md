@@ -39,9 +39,10 @@ Disassembly で 特定の machine instruction を Courgette instruction に直�
 Disassembler の部分class を binary file header を見て決める
 
 ### 具体的にソースコードを見る
-DisassemblerWind32 とかが担当してる
+DisassemblerWin32 とかが担当してる
 
 Disassembler::CreateProgram(bool annotate) @ disassembler.cc
+
 program()を作って
 kind: OOS とかの種類
 1. PreComputeLabels()
@@ -66,7 +67,7 @@ Header 読み込み.
 
 
 ### DisasesmblerWin32; QuickDetect
-ヘッダ見ておわってる？
+ヘッダ見てそれで終了している
 
 InsteructionGenerator は BindRepeating らしい
 ParseFile は
@@ -113,9 +114,9 @@ S2 を S1 にマッチさせる方法は bractracking なかったら until こ�
 それぞれのsymbol U, V in A2 は A1 から候補を引っ張ってきて、各要素は weight をもつ. これはmatch のevidence による
 
 U, V の VariableQueue をもっていて、beest coice が 2番目の選択肢よりどのくらい良いか 'clear cut' か
-=> 一番clear cut かを来めて assign してる
+=> 一番clear cut かを決めて assign してる
 
-ナイーブニヤルト (A, U) の全ペアとそれぞれのペアについて benefit, score, U:=A を求めたらいい
+ナイーブに行なうと (A, U) の全ペアとそれぞれのペアについて benefit, score, U:=A を求めたらいい
 score はA の S1 での出現頻度と同じ文脈でのU の S2 内部での出現頻度
 
 「文脈」の識別には S1, S2 を k-length substrings overwrapping sequence としてみる. 以下 shingles とよぶ.
@@ -124,13 +125,12 @@ Two shingles are compatible <=> symbol in one shingle が他のシンボルと�
 Assignment するまでどれがどれに対応するかは分からない
 U:=A と代入してから UVW, UWV が compatible となる.
 
-assigns をする以上 shingles の同値類の数はふえていき、それぞれの同値類内部の要素数は減っていく
-
+assigns をする以上 shingles の同値類の数はふえていき、それぞれの同値類内部の要素数は減っていく.
 
 U:==A の証拠を探す, U を含む shingles がどれだけ A を含む shingles と compatible かで判断.
 つまり沢山出現されるsymbol ほど先に代入される
 
-most clear-cut assignment by considering all pairs symbols & each pair 各ペアのoccurence context a を比較しってやるのは実行できる計算量でない.
+most clear-cut assignment by considering all pairs symbols & each pair 各ペアのoccurence context a を比較するのがは実行できる計算量でない.
 
 以下のapproach を実現可能にするため、backward している.
 
