@@ -9,9 +9,8 @@
 * rel32: In an image these appear in branch/call opcodes, and are represented
   as offsets from an instruction address.
 
-## クラス説明
-* Stream
-* Sink
+## クラス
+* (Source/Sink)Stream
 * Regionは メモリ領域を記述する; start address と bytes と length measurement が必要
 * Element は Ensemble のリージョンでExecutable Type = win32, elf32, win32を持ったもの
 
@@ -22,8 +21,8 @@
 ## 概要
 `courgette/courgette_tool.cc` GenerateEnsemblePatch がスタートポイント
 
-"Sink" を Patch の Streami にしてファイル書込みしてGenerateEnsemblePatch @ `ensemble_create.cc` に移行
-"Transform Method" : 入力Method を bsddiff が小さくなるように変形
+ファイル書込みしてGenerateEnsemblePatch @ `ensemble_create.cc` に移行
+"Transform Method" : 入力Method を bsdiff が小さくなるように変形
 1. disassbble (新旧を AssemblyProgram に直す)
 2.  adjst (AssemblyProgram object を作成
 3.  encode (AssemblyProgram を raw bytes に直す)
@@ -134,7 +133,13 @@ most clear-cut assignment by considering all pairs symbols & each pair 各ペア
 
 以下のapproach を実現可能にするため、backward している.
 
+### AdjustmentMethodTest
+MakeProgram でプログラムを作成している. これら2つのプログラムはlabel の指すアドレスの絶対値 (kRvaA, kRvaB) だけがずれている.
+Adjustment すると同じアドレスになる.
+
 ### アルゴリズムの説明
+
+TODO
 
 Shingle
 - offsetmask
