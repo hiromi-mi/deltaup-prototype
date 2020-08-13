@@ -1,0 +1,7 @@
+[package]
+name = "deltaup-prototype"
+version = "0.0.0"
+authors = ["hiromi-mi <hiromi-mi@cat.zaq.jp>"]
+edition = "2018"
+
+[dependencies]
