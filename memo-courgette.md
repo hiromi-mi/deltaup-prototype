@@ -1,4 +1,5 @@
 # Cougette で迷子にならない
+Author: hiromi-mi
 
 ## 用語説明 
 `image_utils.c` より引用
@@ -13,6 +14,16 @@
 * (Source/Sink)Stream
 * Regionは メモリ領域を記述する; start address と bytes と length measurement が必要
 * Element は Ensemble のリージョンでExecutable Type = win32, elf32, win32を持ったもの
+* Shingle は LabelInfos の固定長の文字列. Trace の中に現れる (?)
+* We repesent the Shingle by the position of one of the occurrences in the Trace.
+* AssignmentCandidates は LabelInfo のPriority Queue
+- Update() して label を score に直している
+* LabelToScore : LabelToInfo と OrderLabelInfoと int のmap
+* Trace = LabelInfo のVector
+*  std::set<Shingle, InterningLess> OwningSet;
+* FreqView: Shingle Instance のヒストグラム
+- ShinglePatternLess
+- ShinglePatternPointerLess
 
 ### 各種generator
 - MakeGenerator: @ `ensemble_create.cc` で win32 なものを生成した
@@ -30,10 +41,10 @@
 ## 1. Disassemble
 DisassembleCourgerette
 
-入力はinput pointer の raw file (ほんまか？？？)
+入力はinput pointer の raw file
 Disassembly で 特定の machine instruction を Courgette instruction に直してる
 
-絶対アドレスで用いられている命令を binary file relocation table で見つけだし、相対アッドレスに直す
+絶対アドレスで用いられている命令を binary file relocation table で見つけだし、相対アドレスに直す
 これは disassemble:ParseDetectedExecutable <- 実際にはそんなものはない
 Disassembler の部分class を binary file header を見て決める
 
@@ -66,7 +77,7 @@ Header 読み込み.
 
 
 ### DisasesmblerWin32; QuickDetect
-ヘッダ見てそれで終了している
+ヘッダ見て判定
 
 InsteructionGenerator は BindRepeating らしい
 ParseFile は
@@ -117,6 +128,8 @@ adjustment method は `adjustment_method.cc` と `adjustment_method_2.cc` (!) �
 ```
 @ `adjustment_method.cc` l.119
 よくわからない
+
+### TryExtendAssignment
 
 ### AssignmentProblem: 上のGraph Matching を実際に実装
 このグラフ構造は LabelInfo を枝としてもつ.
@@ -173,3 +186,15 @@ Shingle
 - offsetmask
 - fixed
 - variable
+
+### Adjustor : Adjustor を実際に行なっている.
+Finish() を呼び
+* プログラム中のindex を外し
+* CollectTraces を呼ぶ.
+* abs, rel それぞれについて Solve()
+* RemainingIndexes() を Assign する
+#### CollectTraces()
+各ラベルについて, Trace にラベル情報を作成して追加してる
+
+#### Solve()
+LabelInfo をリンクして, AssignmentProblem a を定義. そして a.Solve() を解く.
