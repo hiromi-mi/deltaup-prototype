@@ -22,6 +22,7 @@ Author: hiromi-mi
 * Trace = LabelInfo のVector
 *  std::set<Shingle, InterningLess> OwningSet;
 * FreqView: Shingle Instance のヒストグラム
+* Ensemble = Element[] (ソースコード領域が複数あるのがElement)
 - ShinglePatternLess
 - ShinglePatternPointerLess
 
@@ -135,9 +136,16 @@ adjustment method は `adjustment_method.cc` と `adjustment_method_2.cc` (!) �
 このグラフ構造は LabelInfo を枝としてもつ.
 TrySolveNode() にて貪欲法をそれぞれの node に対して適用
 
+ラベルが連結リストで持ってる
+プログラムとモデルの木構造を作る. 木構造を対応させる
+
+places : sequence への index
+edge が empty() でなければ Extended();  -> 木構造が埋まっている ( @ ExtendNode)
+m_trace (Label情報全部？) を持って呼び出して、trae ごとに対して
+
 ##  adjustment_method_2.cc
 AssemblyProgram を実際のAddress とのMap を作るらしい
-`adjustment_method_2.cc` に長文説明があるのでそれを参照. 以下翻訳.
+`adjustment_method_2.cc` に長文説明があるのでそれを参照.
 
 Seq1 A1 model : A, B, C
 Sequence 2 A2: program U, V, W
@@ -147,16 +155,16 @@ S1 のsequncence を symbol のindex の列T1 jninaosul
 A2 のシンボルをわって S2 を T2 にしたい
 T2 は T1 を部分列として持つ
 
-T1;T2 を差分にしたい
+T1;T2 を差分構造として持ちたい
 
-S2 を S1 にマッチさせる方法は bractracking なかったら until これ以上マッチが見つからない
+S2 を S1 にマッチさせる方法は なかったら これ以上マッチが見つからないまで backtracking すること
 
 それぞれのsymbol U, V in A2 は A1 から候補を引っ張ってきて、各要素は weight をもつ. これはmatch のevidence による
 
 U, V の VariableQueue をもっていて、beest coice が 2番目の選択肢よりどのくらい良いか 'clear cut' か
 => 一番clear cut かを決めて assign してる
 
-ナイーブに行なうと (A, U) の全ペアとそれぞれのペアについて benefit, score, U:=A を求めたらいい
+ナイーブに行なうと (A, U) の全ペアとそれぞれのペアについて benefit, score, U:=A を求めたらいいことになる。ここで
 score はA の S1 での出現頻度と同じ文脈でのU の S2 内部での出現頻度
 
 「文脈」の識別には S1, S2 を k-length substrings overwrapping sequence としてみる. 以下 shingles とよぶ.
@@ -180,8 +188,6 @@ Adjustment すると同じアドレスになる.
 
 ### アルゴリズムの説明
 
-TODO
-
 Shingle
 - offsetmask
 - fixed
@@ -198,3 +204,4 @@ Finish() を呼び
 
 #### Solve()
 LabelInfo をリンクして, AssignmentProblem a を定義. そして a.Solve() を解く.
+
