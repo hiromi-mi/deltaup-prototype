@@ -25,6 +25,10 @@ Author: hiromi-mi
 * Ensemble = Element[] (ソースコード領域が複数あるのがElement)
 - ShinglePatternLess
 - ShinglePatternPointerLess
+* FreqView (occurence, Shingle instance) のかたちにに Shingle を見せるためのAdapter
+* Histogram: FreqView を occurence 順に並べたset
+* Shingle : Trace (LabelInfo のVector) 中にある特定のLabel 一覧のslice (not 文字列)
+* OwningSet?
 
 ### 各種generator
 - MakeGenerator: @ `ensemble_create.cc` で win32 なものを生成した
@@ -190,8 +194,15 @@ Adjustment すると同じアドレスになる.
 
 Shingle
 - offsetmask
-- fixed
-- variable
+- fixed : 上のfixed
+- variable : まだ未定 (label assignment の有無で調べている)
+
+ShinglePattern::Index::Index : 先の kinds_ と index_ をShingle 内部の全labelinfo に対して探索
+
+score (といか add_position の呼ばれる場所) -> find
+
+Shingle::Find が呼ばれて add_position されてを繰り返し実行している
+`std::pair<OwningSet::iterator, bool> pair = owning_set->insert(Shingle(trace, position));` @ adjustment_method_2.cc l.383
 
 ### Adjustor : Adjustor を実際に行なっている.
 Finish() を呼び
