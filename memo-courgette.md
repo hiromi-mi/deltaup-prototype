@@ -205,3 +205,13 @@ Finish() を呼び
 #### Solve()
 LabelInfo をリンクして, AssignmentProblem a を定義. そして a.Solve() を解く.
 
+### minimal_tool
+tool と minimal ツールは実際の適用
+minimal_tool について、Patch Apply をやる.
+
+FilePath -> File -> Stream と ApplyEnsemblePatch を順繰りに読んでいき、そこで EnsemblePatchAPplication を作成
+
+### patcher
+それぞれの disassemble -> patch までの一連の処理を抽象化. (all the logic and data to apply multi-stage patch)
+まずヘッダを仮読みして傾向をつかんでその先を実際のものを呼ぶ
+patcher_x86_32.cc などに実際の処理

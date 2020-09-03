@@ -5,3 +5,4 @@ authors = ["hiromi-mi <hiromi-mi@cat.zaq.jp>"]
 edition = "2018"
 
 [dependencies]
+clap = "*"
