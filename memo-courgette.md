@@ -18,7 +18,8 @@ Author: hiromi-mi
 * We repesent the Shingle by the position of one of the occurrences in the Trace.
 * AssignmentCandidates は LabelInfo のPriority Queue: 単一LabelInfo に対応する LabelInfo(s) のQueue
 - Update() して label を score に直している
-* LabelToScore : LabelToInfo と OrderLabelInfoと int のmap
+* LabelToScore : LabelInfo (model 側) と OrderLabelInfoと int のmap
+* ScoreSet: LabelInfo (program 側) と LabelToScore (model 側) とのmap
 * Trace = LabelInfo のVector
 *  std::set<Shingle, InterningLess> OwningSet;
 * FreqView: Shingle Instance のヒストグラム
@@ -28,7 +29,7 @@ Author: hiromi-mi
 * FreqView (occurence, Shingle instance) のかたちにに Shingle を見せるためのAdapter
 * Histogram: FreqView を occurence 順に並べたset
 * Shingle : Trace (LabelInfo のVector) 中にある特定のLabel 一覧のslice (not 文字列)
-* OwningSet `<Shingle, InterningLess>` の set
+* OwningSet `<Shingle>` の set, 比較方法が Interningless
 * VariableQueue: program 中の対応付けされていないLabelInfo の Queue.
 
 ### 各種generator
@@ -229,6 +230,8 @@ ModelInfo が存在すれば `old_score` に該当するものを削除して de
 
 対応つけされていない LabelINfo を AssignemntCandidate に入れるのは VariableQueue::AddPendingUpdate()
 それは AddPatternToLabelQueue() 中で行なわれている
+
+AddPatternToLabelQueue がスコア計算してる
 
 ### Adjustor : Adjustor を実際に行なっている.
 Finish() を呼び
