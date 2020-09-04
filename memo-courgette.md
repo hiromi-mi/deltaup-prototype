@@ -16,7 +16,7 @@ Author: hiromi-mi
 * Element は Ensemble のリージョンでExecutable Type = win32, elf32, win32を持ったもの
 * Shingle は LabelInfos の固定長の文字列. Trace の中に現れる (?)
 * We repesent the Shingle by the position of one of the occurrences in the Trace.
-* AssignmentCandidates は LabelInfo のPriority Queue
+* AssignmentCandidates は LabelInfo のPriority Queue: 単一LabelInfo に対応する LabelInfo(s) のQueue
 - Update() して label を score に直している
 * LabelToScore : LabelToInfo と OrderLabelInfoと int のmap
 * Trace = LabelInfo のVector
@@ -28,7 +28,8 @@ Author: hiromi-mi
 * FreqView (occurence, Shingle instance) のかたちにに Shingle を見せるためのAdapter
 * Histogram: FreqView を occurence 順に並べたset
 * Shingle : Trace (LabelInfo のVector) 中にある特定のLabel 一覧のslice (not 文字列)
-* OwningSet?
+* OwningSet `<Shingle, InterningLess>` の set
+* VariableQueue: program 中の対応付けされていないLabelInfo の Queue.
 
 ### 各種generator
 - MakeGenerator: @ `ensemble_create.cc` で win32 なものを生成した
@@ -203,6 +204,31 @@ score (といか add_position の呼ばれる場所) -> find
 
 Shingle::Find が呼ばれて add_position されてを繰り返し実行している
 `std::pair<OwningSet::iterator, bool> pair = owning_set->insert(Shingle(trace, position));` @ adjustment_method_2.cc l.383
+
+AddShingles() で最初Shingle 追加. (それらは solve() の最初で呼ばれてる)
+```
+AddShingles(0, model_end_);
+AddShingles(model_end_, trace_.size());
+```
+model の最初と最後 までに対して,  `Shingle::kWidth(=5)-1+i<end` まで順番に1つの範囲?づつ Shingle::Find してる
+
+patterns は 
+- retired pattern : no shingles exist for this pattern
+- useless pattern : no 'program' shingles for this pattern
+- single-use pattern
+- other pattern (variable_queue)
+
+LabelInfoMaker::MakeLabelInfo(Label, is_model, position) により LabelInfo が作られる.
+label_infos_ なるグローバル変数がある
+
+AssignmentCandidate の Update() : label_to_score を ModelInfo ごとにたぐり
+ModelInfo が存在すれば `old_score` に該当するものを削除して delta_score くわえて push
+存在しなければ delta_score 加えてpush
+
+このUpdate は直接呼ばれず ApplypendingUpdate() (AddPendingUpdate()) から呼ばれている
+
+対応つけされていない LabelINfo を AssignemntCandidate に入れるのは VariableQueue::AddPendingUpdate()
+それは AddPatternToLabelQueue() 中で行なわれている
 
 ### Adjustor : Adjustor を実際に行なっている.
 Finish() を呼び
