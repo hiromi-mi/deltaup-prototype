@@ -1,4 +1,5 @@
 use clap::{App, Arg};
+use std::fmt;
 
 fn main() {
     let matches = App::new("deltaup-prototype")
@@ -19,6 +20,30 @@ fn main() {
     }
 }
 
-struct Architecture {
+struct EncodedProgram {
+    program : Vec<EncodedProgramInstruction>,
+}
 
+impl EncodedProgram {
+fn new() -> EncodedProgram {
+    EncodedProgram { program: vec![] }
+}
+}
+
+impl ToString for EncodedProgram {
+    fn to_string(&self) -> String {
+        "".to_string()
+    }
+}
+
+#[derive(Debug)]
+enum EncodedProgramInstruction {
+    Copy,
+    Add(u32, String)
+}
+
+impl fmt::Display for EncodedProgramInstruction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{:?}", self)
+    }
 }
