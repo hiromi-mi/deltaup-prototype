@@ -21,13 +21,13 @@ fn main() {
 }
 
 struct EncodedProgram {
-    program : Vec<EncodedProgramInstruction>,
+    program: Vec<EncodedProgramInstruction>,
 }
 
 impl EncodedProgram {
-fn new() -> EncodedProgram {
-    EncodedProgram { program: vec![] }
-}
+    fn new() -> EncodedProgram {
+        EncodedProgram { program: vec![] }
+    }
 }
 
 impl ToString for EncodedProgram {
@@ -39,11 +39,11 @@ impl ToString for EncodedProgram {
 #[derive(Debug)]
 enum EncodedProgramInstruction {
     Copy,
-    Add(u32, String)
+    Add(u32, String),
 }
 
 impl fmt::Display for EncodedProgramInstruction {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{:?}", self)
+        write!(f, "{:?}", self)
     }
 }
