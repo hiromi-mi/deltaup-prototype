@@ -93,33 +93,34 @@ int main(int argc, const char** argv) {
             break;
          case MATCH:
             //puts("Match");
-            printf("%d,0,0\n", MATCH);
+            //printf("%d,0,0\n", MATCH);
             i--;
             j--;
             break;
          case SUBSTITUTE:
             //printf("Substitute %d to %d\n", orig[i], new[j]);
-            printf("%d,%hhd,%hhd\n", SUBSTITUTE, orig[i], new[j]);
             i--;
             j--;
+            printf("%d,%d,%c\n", i, SUBSTITUTE, new[j]);
             score--;
             break;
          case INSERT:
             //printf("Insert %d\n", new[j]);
-            printf("%d,%hhd,%hhd\n", INSERT, 0, new[j]);
             j--;
+            printf("%d,%d,%c\n", i, INSERT, new[j]);
             score--;
             break;
          case DELETE:
-            printf("%d,%hhd,%hhd\n", DELETE, orig[i], 0);
-            //printf("Delete %d\n", orig[i]);
             i--;
+            printf("%d,%d,%c\n", i, DELETE, orig[i]);
+            //printf("Delete %d\n", orig[i]);
             score--;
             break;
          default:
             fprintf(stderr, "Unknown: %d at %d %d\n", act[i][j], i, j);
             exit(-1);
       }
+      //cnt++;
    }
    if (score != 0) {
       fprintf(stderr, "Score should be zero: %d\n", score);

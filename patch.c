@@ -32,20 +32,20 @@ int main(int argc, const char** argv) {
       exit(-1);
    }
    Action act[10000];
-   char orig_num[10000];
+   int cnt_num[10000];
    char new_num[10000];
    int cnt;
    for (cnt=0;!feof(fp);cnt++) {
-      fscanf(fp, "%d,%hhd,%hhd\n", &act[cnt], &orig_num[cnt], &new_num[cnt]);
+      fscanf(fp, "%d,%d,%c\n", &cnt_num[cnt], &act[cnt], &new_num[cnt]);
    }
    fclose(fp);
    int i=0;
    for (int cmd =cnt-1;cmd>=0 && i < orignum;cmd--) {
+      while (i < cnt_num[cmd]) {
+         putchar(orig[i]);
+         i++;
+      }
       switch(act[cmd]) {
-         case MATCH:
-            putchar(orig[i]);
-            i++;
-            break;
          case SUBSTITUTE:
             putchar(new_num[cmd]);
             i++;
@@ -60,6 +60,10 @@ int main(int argc, const char** argv) {
             fprintf(stderr, "Error");
             exit(-1);
       }
+   }
+   while (i < orignum) {
+      putchar(orig[i]);
+      i++;
    }
    return 0;
 }
