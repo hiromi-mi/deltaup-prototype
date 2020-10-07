@@ -12,7 +12,7 @@ typedef enum {
    MATCH = 1 << 3
 } Action;
 
-int min(int* costs) {
+int argmin(int* costs) {
    int minindex = 0;
    int minval = 1000010;
    for (int index = 0;index < 4; index++) {
@@ -78,7 +78,7 @@ int main(int argc, const char** argv) {
          costs[1] = table[i][j-1]+1; // INSERT
          costs[0] = table[i-1][j]+1; // DELETE
 
-         int index = min(costs);
+         int index = argmin(costs);
          // |= ではいけない
          act[i][j] = 1 << index;
          table[i][j] = costs[index];
