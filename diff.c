@@ -58,8 +58,14 @@ int main(int argc, const char** argv) {
       table[i] = malloc(newnum * sizeof(int));
       act[i]   = malloc(newnum * sizeof(Action));
    }
-   table[0][0] = 0;
-   act[0][0] = NONE;
+   // 最初の位置での計算
+   if (orig[0] == new[0]) {
+      table[0][0] = 0;
+      act[0][0] = MATCH;
+   } else {
+      table[0][0] = 1;
+      act[0][0] = SUBSTITUTE;
+   }
    for (int i=1;i<orignum;i++) {
       table[i][0] = i;
       act[i][0] = DELETE;
@@ -86,7 +92,7 @@ int main(int argc, const char** argv) {
    }
    fprintf(stderr, "score: %d\n", table[orignum-1][newnum-1]);
    int i = orignum-1, j = newnum-1, score = table[orignum-1][newnum-1];
-   while (!(i <= 0 && j <= 0)) {
+   while (i >= 0 && j >= 0) {
       switch(act[i][j]) {
          case NONE:
             fprintf(stderr, "Error\n");
@@ -97,19 +103,19 @@ int main(int argc, const char** argv) {
             j--;
             break;
          case SUBSTITUTE:
+            printf("%d,%d,%c\n", i, SUBSTITUTE, new[j]);
             i--;
             j--;
-            printf("%d,%d,%c\n", i, SUBSTITUTE, new[j]);
             score--;
             break;
          case INSERT:
-            j--;
             printf("%d,%d,%c\n", i, INSERT, new[j]);
+            j--;
             score--;
             break;
          case DELETE:
-            i--;
             printf("%d,%d,%c\n", i, DELETE, orig[i]);
+            i--;
             score--;
             break;
          default:

@@ -2,3 +2,5 @@
 Cargo.lock
 test/*.diff
 test/*.result
+diff
+patch

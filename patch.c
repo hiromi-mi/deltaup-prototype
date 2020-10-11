@@ -24,7 +24,8 @@ int main(int argc, const char** argv) {
    if (fp == NULL) {
       exit(-1);
    }
-   const int orignum = fread(orig, sizeof(char), ORIG_MAX-1, fp) / sizeof(char) + 1;
+   // ここを orignum += 1 とうすると '\0' の不要なものまで出力される
+   const int orignum = fread(orig, sizeof(char), ORIG_MAX-1, fp) / sizeof(char);
    fclose(fp);
 
    fp = fopen(argv[2], "r");
