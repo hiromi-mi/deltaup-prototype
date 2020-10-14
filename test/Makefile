@@ -1,4 +1,5 @@
-all:	1 2 8 5 6 7 3 4
+all:	1 2 5 7
+fail: 3 4  6 8
 1:
 	../diff 1.old 1.new > 1.diff
 	../patch 1.old 1.diff > 1.result
@@ -31,3 +32,5 @@ all:	1 2 8 5 6 7 3 4
 	../diff 8.old 8.new > 8.diff
 	../patch 8.old 8.diff > 8.result
 	diff 8.new 8.result
+
+.PHONY: all fail
