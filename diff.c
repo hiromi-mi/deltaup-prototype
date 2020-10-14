@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 // http://karel.tsuda.ac.jp/lec/EditDistance/
 
@@ -12,13 +13,14 @@ typedef enum {
    MATCH = 1 << 3
 } Action;
 
-int argmin(int* costs) {
+int argmin(int* costs, size_t n) {
+   assert(n > 0);
    int minindex = 0;
-   int minval = 1000010;
-   for (int index = 0;index < 4; index++) {
-      if (minval >= costs[index]) {
-         minval = costs[index];
+   int minval = costs[0];
+   for (size_t index=1;index<n;index++) {
+      if (minval > costs[index]) {
          minindex = index;
+         minval = costs[index];
       }
    }
    return minindex;
@@ -81,7 +83,7 @@ int main(int argc, const char** argv) {
          costs[1] = table[i][j-1]+1; // INSERT
          costs[0] = table[i-1][j]+1; // DELETE
 
-         int index = argmin(costs);
+         int index = argmin(costs, 4);
          // |= ではいけない
          act[i][j] = 1 << index;
          table[i][j] = costs[index];
