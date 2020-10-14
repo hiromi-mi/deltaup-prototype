@@ -49,7 +49,7 @@ int main(int argc, const char** argv) {
    if (fp == NULL) {
       exit(-1);
    }
-   // 「0文字目」が存在しない
+   // 「0文字目」が存在しない, \0 をスルー
    const int newnum = fread(new, sizeof(char), NEW_MAX-1, fp) / sizeof(char) + 1;
    fclose(fp);
 
@@ -61,13 +61,8 @@ int main(int argc, const char** argv) {
       act[i]   = malloc(newnum * sizeof(Action));
    }
    // 最初の位置での計算
-   //if (orig[0] == new[0]) {
-      table[0][0] = 0;
-      act[0][0] = MATCH;
-   /*} else {
-      table[0][0] = 1;
-      act[0][0] = SUBSTITUTE;
-   }*/
+   table[0][0] = 0;
+   act[0][0] = MATCH;
    for (int i=1;i<orignum;i++) {
       table[i][0] = i + table[0][0];
       act[i][0] = DELETE;
@@ -79,7 +74,7 @@ int main(int argc, const char** argv) {
    for (int i=1;i<orignum;i++) {
       for (int j=1;j<newnum;j++) {
          int costs[4] = {1000000, 1000000, 1000000, 1000000};
-         if (orig[i-1] == new[i-1]) {
+         if (orig[i-1] == new[j-1]) {
             costs[3] = table[i-1][j-1]; // MATCH
          }
          costs[2] = table[i-1][j-1]+1; // SUBSTITUTE
@@ -92,7 +87,7 @@ int main(int argc, const char** argv) {
          table[i][j] = costs[index];
       }
    }
-   fprintf(stderr, "score: %d\n", table[orignum-1][newnum-1]);
+   fprintf(stderr, "score: %d (%d, %d)\n", table[orignum-1][newnum-1], orignum, newnum);
    int i = orignum-1, j = newnum-1, score = table[orignum-1][newnum-1];
    while (i >= 0 && j >= 0) {
       switch(act[i][j]) {
@@ -111,8 +106,8 @@ int main(int argc, const char** argv) {
             score--;
             break;
          case INSERT:
-            printf("%d,%d,%c\n", i, INSERT, new[j]);
             j--;
+            printf("%d,%d,%c\n", i, INSERT, new[j]);
             score--;
             break;
          case DELETE:

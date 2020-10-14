@@ -1,5 +1,4 @@
-all:	1 2 5 7
-fail: 8 6 3 4
+all:	1 2 5 7 8 6 3 4
 1:
 	../diff 1.old 1.new > 1.diff
 	../patch 1.old 1.diff > 1.result
