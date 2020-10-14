@@ -67,11 +67,11 @@ int main(int argc, const char** argv) {
       act[0][0] = SUBSTITUTE;
    }
    for (int i=1;i<orignum;i++) {
-      table[i][0] = i;
+      table[i][0] = i + table[0][0];
       act[i][0] = DELETE;
    }
    for (int j=1;j<newnum;j++) {
-      table[0][j] = j;
+      table[0][j] = j + table[0][0];
       act[0][j] = INSERT;
    }
    for (int i=1;i<orignum;i++) {
@@ -109,7 +109,8 @@ int main(int argc, const char** argv) {
             score--;
             break;
          case INSERT:
-            printf("%d,%d,%c\n", i, INSERT, new[j]);
+            fprintf(stderr, "%d", j);
+            printf("%d,%d,%c\n", i+1, INSERT, new[j]);
             j--;
             score--;
             break;
@@ -124,7 +125,7 @@ int main(int argc, const char** argv) {
       }
    }
    if (score != 0) {
-      fprintf(stderr, "Score should be zero: %d\n", score);
+      fprintf(stderr, "Score should be zero: %d, (%d,%d)\n", score,i,j);
       exit(-1);
    }
    return 0;

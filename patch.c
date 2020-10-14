@@ -41,7 +41,7 @@ int main(int argc, const char** argv) {
    }
    fclose(fp);
    int i=0;
-   for (int cmd =cnt-1;cmd>=0 && i < orignum;cmd--) {
+   for (int cmd =cnt-1;cmd>=0;cmd--) {
       while (i < cnt_num[cmd]) {
          putchar(orig[i]);
          i++;
