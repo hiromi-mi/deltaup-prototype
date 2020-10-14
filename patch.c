@@ -52,6 +52,10 @@ int main(int argc, const char** argv) {
             i++;
             break;
          case INSERT:
+            if (i == cnt_num[cmd]) {
+               putchar(orig[i]);
+               i++;
+            }
             putchar(new_num[cmd]);
             break;
          case DELETE:

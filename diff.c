@@ -41,6 +41,7 @@ int main(int argc, const char** argv) {
    if (fp == NULL) {
       exit(-1);
    }
+   // 「0文字目」が存在しない
    const int orignum = fread(orig, sizeof(char), ORIG_MAX-1, fp) / sizeof(char) + 1;
    fclose(fp);
 
@@ -48,6 +49,7 @@ int main(int argc, const char** argv) {
    if (fp == NULL) {
       exit(-1);
    }
+   // 「0文字目」が存在しない
    const int newnum = fread(new, sizeof(char), NEW_MAX-1, fp) / sizeof(char) + 1;
    fclose(fp);
 
@@ -59,13 +61,13 @@ int main(int argc, const char** argv) {
       act[i]   = malloc(newnum * sizeof(Action));
    }
    // 最初の位置での計算
-   if (orig[0] == new[0]) {
+   //if (orig[0] == new[0]) {
       table[0][0] = 0;
       act[0][0] = MATCH;
-   } else {
+   /*} else {
       table[0][0] = 1;
       act[0][0] = SUBSTITUTE;
-   }
+   }*/
    for (int i=1;i<orignum;i++) {
       table[i][0] = i + table[0][0];
       act[i][0] = DELETE;
@@ -77,7 +79,7 @@ int main(int argc, const char** argv) {
    for (int i=1;i<orignum;i++) {
       for (int j=1;j<newnum;j++) {
          int costs[4] = {1000000, 1000000, 1000000, 1000000};
-         if (orig[i] == new[i]) {
+         if (orig[i-1] == new[i-1]) {
             costs[3] = table[i-1][j-1]; // MATCH
          }
          costs[2] = table[i-1][j-1]+1; // SUBSTITUTE
@@ -103,20 +105,19 @@ int main(int argc, const char** argv) {
             j--;
             break;
          case SUBSTITUTE:
-            printf("%d,%d,%c\n", i, SUBSTITUTE, new[j]);
             i--;
             j--;
+            printf("%d,%d,%c\n", i, SUBSTITUTE, new[j]);
             score--;
             break;
          case INSERT:
-            fprintf(stderr, "%d", j);
-            printf("%d,%d,%c\n", i+1, INSERT, new[j]);
+            printf("%d,%d,%c\n", i, INSERT, new[j]);
             j--;
             score--;
             break;
          case DELETE:
-            printf("%d,%d,%c\n", i, DELETE, orig[i]);
             i--;
+            printf("%d,%d,%c\n", i, DELETE, orig[i]);
             score--;
             break;
          default:
