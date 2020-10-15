@@ -6,5 +6,7 @@ patch:
 
 test:
 	$(MAKE) -C test
+clean:
+	$(RM) -f diff patch
 
-.PHONY:	all test
+.PHONY:	all test clean
