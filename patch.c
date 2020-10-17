@@ -32,7 +32,7 @@ int main(int argc, const char** argv) {
    size_t cnt;
    int action;
    for (cnt=0;!feof(fp);cnt++) {
-      fscanf(fp, "%ld,%d,%c\n", &cnt_num[cnt], &action, &new_num[cnt]);
+      fscanf(fp, "%lx,%d,%hhx\n", &cnt_num[cnt], &action, &new_num[cnt]);
       // TODO 想定外の値に対してエラー
       act[cnt] = (Action)action;
    }
