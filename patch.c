@@ -27,34 +27,29 @@ int main(int argc, const char** argv) {
    if (fp == NULL) {
       exit(-1);
    }
-   Action act[500000];
-   size_t cnt_num[500000];
-   char new_num[500000];
+   size_t cnt_num;
+   char new_num;
    size_t cnt;
    int action;
    size_t i = 0;
    for (cnt=0;!feof(fp);cnt++) {
-      fscanf(fp, "%lx,%d", &cnt_num[cnt], &action);
+      fscanf(fp, "%lx,%d", &cnt_num, &action);
       // TODO 想定外の値に対してエラー
-      act[cnt] = (Action)action;
-      while (i < cnt_num[cnt]) {
+      while (i < cnt_num) {
          putchar(orig[i]);
          i++;
       }
-      switch(act[cnt]) {
+      switch((Action)action) {
          case SUBSTITUTE:
-            fscanf(fp, ",%hhx\n", &new_num[cnt]);
-            putchar(new_num[cnt]);
+            fscanf(fp, ",%hhx\n", &new_num);
+            putchar(new_num);
             i++;
             break;
          case INSERT:
-            fscanf(fp, ",%hhx\n", &new_num[cnt]);
-            putchar(new_num[cnt]);
-            char c;
-            /*
-            while (fscanf(fp, " %hhx", &c) > 0) {
-               putchar(c);
-            }*/
+            while (fscanf(fp, ",%hhx", &new_num) > 0) {
+               putchar(new_num);
+            }
+            fscanf(fp, "\n");
             break;
          case DELETE:
             fscanf(fp, "\n");
