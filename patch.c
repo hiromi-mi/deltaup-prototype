@@ -1,23 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-typedef enum {
-   NONE = 0,
-   DELETE = 1 << 0,
-   INSERT = 1 << 1,
-   SUBSTITUTE = 1 << 2,
-   MATCH = 1 << 3
-} Action;
-
+#include "common.h"
 
 int main(int argc, const char** argv) {
    if (argc <= 2) {
       fprintf(stderr, "Usage: oldfile difffile\n");
       exit(-1);
    }
-   const int ORIG_MAX = 4098*2;
-   char orig[ORIG_MAX];
+   const int ORIG_MAX = 2 << 22;
+   // TODO calloc を使うと0埋めされる
+   char* orig = malloc(sizeof(char) * ORIG_MAX);
+   // char buf[5] = {0};
    memset(orig,0,  ORIG_MAX);
    FILE *fp;
    fp = fopen(argv[1], "r");
@@ -36,8 +30,11 @@ int main(int argc, const char** argv) {
    int cnt_num[10000];
    char new_num[10000];
    int cnt;
+   int action;
    for (cnt=0;!feof(fp);cnt++) {
-      fscanf(fp, "%d,%d,%c\n", &cnt_num[cnt], &act[cnt], &new_num[cnt]);
+      fscanf(fp, "%d,%d,%c\n", &cnt_num[cnt], &action, &new_num[cnt]);
+      // TODO 想定外の値に対してエラー
+      act[cnt] = (Action)action;
    }
    fclose(fp);
    int i=0;
