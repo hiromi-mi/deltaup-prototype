@@ -31,6 +31,7 @@ int main(int argc, const char** argv) {
    char new_num;
    size_t cnt;
    int action;
+   size_t len;
    size_t i = 0;
    for (cnt=0;!feof(fp);cnt++) {
       fscanf(fp, "%lx,%d", &cnt_num, &action);
@@ -41,9 +42,11 @@ int main(int argc, const char** argv) {
       }
       switch((Action)action) {
          case SUBSTITUTE:
-            fscanf(fp, ",%hhx\n", &new_num);
-            putchar(new_num);
-            i++;
+            while (fscanf(fp, ",%hhx", &new_num) > 0) {
+               putchar(new_num);
+               i++;
+            }
+            fscanf(fp, "\n");
             break;
          case INSERT:
             while (fscanf(fp, ",%hhx", &new_num) > 0) {
@@ -52,11 +55,11 @@ int main(int argc, const char** argv) {
             fscanf(fp, "\n");
             break;
          case DELETE:
-            fscanf(fp, "\n");
-            i++;
+            fscanf(fp, ",%ld\n", &len);
+            i+=len;
             break;
          default:
-            fprintf(stderr, "Error");
+            fprintf(stderr, "Error: %d\n", action);
             exit(-1);
       }
    }

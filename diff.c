@@ -61,7 +61,11 @@ int main(int argc, const char** argv) {
       act[i]   = calloc(WINDOW_SIZE * sizeof(Action), 1);
    }
    for (int wind_cnt=1;(wind_cnt-1)*WINDOW_CHARS< max(orignum, newnum);wind_cnt++) {
-      char buffer[WINDOW_SIZE][20];
+      Action buffer_act[WINDOW_SIZE*2+10];
+      char buffer_char[WINDOW_SIZE*2+10][WINDOW_SIZE];
+      size_t buffer_char_len[WINDOW_SIZE*2+10];
+      size_t buffer_index[WINDOW_SIZE*2+10];
+      char buffer[WINDOW_SIZE*2+10][20];
       size_t buf_index = 0;
       // 最初の位置での計算
       table[0][0] = 0;
@@ -114,17 +118,45 @@ int main(int argc, const char** argv) {
             case SUBSTITUTE:
                i--;
                j--;
-               snprintf(buffer[buf_index++], 20, "%lx,%d,%hhx", i_whole, SUBSTITUTE, newptr[j]);
+               //  buffer_index[buf_index-1]-buffer_char_len[buf_index-1]
+               //  ここが - なのは逆順だから
+               if (buf_index == 0 || buffer_act[buf_index-1] != SUBSTITUTE || buffer_index[buf_index-1]-buffer_char_len[buf_index-1] != i_whole) {
+                  buffer_act[buf_index] = SUBSTITUTE;
+                  buffer_index[buf_index] = i_whole;
+                  buffer_char[buf_index][0] = newptr[j];
+                  buffer_char_len[buf_index] = 1;
+                  buf_index++;
+               } else {
+                  buffer_char[buf_index-1][buffer_char_len[buf_index-1]++] = newptr[j];
+               }
+               snprintf(buffer[buf_index], 20, "%lx,%d,%hhx", i_whole, SUBSTITUTE, newptr[j]);
                score--;
                break;
             case INSERT:
                j--;
-               snprintf(buffer[buf_index++], 20, "%lx,%d,%hhx", i_whole, INSERT, newptr[j]);
+               if (buf_index == 0 || buffer_act[buf_index-1] != INSERT || buffer_index[buf_index-1] != i_whole) {
+                  buffer_act[buf_index] = INSERT;
+                  buffer_char[buf_index][0] = newptr[j];
+                  buffer_char_len[buf_index] = 1;
+                  buffer_index[buf_index] = i_whole;
+                  buf_index++;
+               } else {
+                  buffer_char[buf_index-1][buffer_char_len[buf_index-1]++] = newptr[j];
+               }
+               snprintf(buffer[buf_index], 20, "%lx,%d,%hhx", i_whole, INSERT, newptr[j]);
                score--;
                break;
             case DELETE:
                i--;
-               snprintf(buffer[buf_index++], 20, "%lx,%d", i_whole, DELETE);
+               if (buf_index == 0 || buffer_act[buf_index-1] != DELETE || buffer_index[buf_index-1]-buffer_char_len[buf_index-1] != i_whole) {
+               buffer_act[buf_index] = DELETE;
+               buffer_index[buf_index] = i_whole;
+               buffer_char_len[buf_index] = 1;
+               snprintf(buffer[buf_index], 20, "%lx,%d,1", i_whole, DELETE);
+               buf_index++;
+               } else {
+                  buffer_char_len[buf_index-1]++;
+               }
                score--;
                break;
             default:
@@ -136,7 +168,29 @@ int main(int argc, const char** argv) {
 
       // 逆順で入力されるのでその逆順で出力
       for (long k=buf_index-1;k>=0;k--) {
-         puts(buffer[k]);
+         switch(buffer_act[k]) {
+            case INSERT:
+               printf("%lx,%d", buffer_index[k], buffer_act[k]);
+               for (long l=buffer_char_len[k]-1;l>=0;l--) {
+                  printf(",%hhx", buffer_char[k][l]);
+               }
+               printf("\n");
+               break;
+            case SUBSTITUTE:
+               printf("%lx,%d", buffer_index[k]+1-buffer_char_len[k], buffer_act[k]);
+               for (long l=buffer_char_len[k]-1;l>=0;l--) {
+                  printf(",%hhx", buffer_char[k][l]);
+               }
+               printf("\n");
+               break;
+            case DELETE:
+               printf("%lx,%d,%ld\n", buffer_index[k]+1-buffer_char_len[k], buffer_act[k], buffer_char_len[k]);
+               break;
+            default:
+               assert(1);
+               break;
+         }
+         //puts(buffer[k]);
       }
 
       origptr += WINDOW_CHARS;
