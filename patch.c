@@ -8,7 +8,7 @@ int main(int argc, const char** argv) {
       fprintf(stderr, "Usage: oldfile difffile\n");
       exit(-1);
    }
-   const int ORIG_MAX = 2 << 22;
+   const int ORIG_MAX = 2 << 23;
    // TODO calloc を使うと0埋めされる
    char* orig = malloc(sizeof(char) * ORIG_MAX);
    // char buf[5] = {0};
@@ -19,26 +19,26 @@ int main(int argc, const char** argv) {
       exit(-1);
    }
    // ここを orignum += 1 とうすると '\0' の不要なものまで出力される
-   const int orignum = fread(orig, sizeof(char), ORIG_MAX-1, fp) / sizeof(char);
+   const size_t orignum = fread(orig, sizeof(char), ORIG_MAX-1, fp) / sizeof(char);
    fclose(fp);
 
    fp = fopen(argv[2], "r");
    if (fp == NULL) {
       exit(-1);
    }
-   Action act[10000];
-   int cnt_num[10000];
-   char new_num[10000];
-   int cnt;
+   Action act[500000];
+   size_t cnt_num[500000];
+   char new_num[500000];
+   size_t cnt;
    int action;
    for (cnt=0;!feof(fp);cnt++) {
-      fscanf(fp, "%d,%d,%c\n", &cnt_num[cnt], &action, &new_num[cnt]);
+      fscanf(fp, "%ld,%d,%c\n", &cnt_num[cnt], &action, &new_num[cnt]);
       // TODO 想定外の値に対してエラー
       act[cnt] = (Action)action;
    }
    fclose(fp);
-   int i=0;
-   for (int cmd =cnt-1;cmd>=0;cmd--) {
+   size_t i=0;
+   for (size_t cmd =0;cmd<cnt;cmd++) {
       while (i < cnt_num[cmd]) {
          putchar(orig[i]);
          i++;

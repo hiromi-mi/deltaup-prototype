@@ -5,6 +5,7 @@
 #include "common.h"
 
 // http://karel.tsuda.ac.jp/lec/EditDistance/
+#define i_whole (i + (wind_cnt-1)*WINDOW_SIZE)
 
 int argmin(int* costs, size_t n) {
    assert(n > 0);
@@ -48,7 +49,7 @@ int main(int argc, const char** argv) {
    char* newptr = new;
    fclose(fp);
 
-   const size_t WINDOW_SIZE = 1 << 10;
+   const size_t WINDOW_SIZE = 1 << 9;
    int* table[WINDOW_SIZE];
    Action* act[WINDOW_SIZE];
    for (size_t i=0;i<WINDOW_SIZE;i++) {
@@ -57,6 +58,8 @@ int main(int argc, const char** argv) {
       act[i]   = calloc(WINDOW_SIZE * sizeof(Action), 1);
    }
    for (int wind_cnt=1;(wind_cnt-1)*WINDOW_SIZE< max(orignum, newnum);wind_cnt++) {
+      char buffer[WINDOW_SIZE][20];
+      size_t buf_index = 0;
       // 最初の位置での計算
       table[0][0] = 0;
       act[0][0] = MATCH;
@@ -97,17 +100,17 @@ int main(int argc, const char** argv) {
             case SUBSTITUTE:
                i--;
                j--;
-               printf("%ld,%d,%c\n", i, SUBSTITUTE, new[j]);
+               snprintf(buffer[buf_index++], 20, "%ld,%d,%c", i_whole, SUBSTITUTE, new[j]);
                score--;
                break;
             case INSERT:
                j--;
-               printf("%ld,%d,%c\n", i, INSERT, new[j]);
+               snprintf(buffer[buf_index++], 20, "%ld,%d,%c", i_whole, INSERT, new[j]);
                score--;
                break;
             case DELETE:
                i--;
-               printf("%ld,%d,%c\n", i, DELETE, orig[i]);
+               snprintf(buffer[buf_index++], 20, "%ld,%d,%c", i_whole, DELETE, orig[i]);
                score--;
                break;
             default:
@@ -116,6 +119,12 @@ int main(int argc, const char** argv) {
          }
       }
       assert(score == 0);
+
+      // 逆順で入力されるので逆順で出力
+      for (long k=buf_index-1;k>=0;k--) {
+         puts(buffer[k]);
+      }
+
       origptr += WINDOW_SIZE;
       newptr += WINDOW_SIZE;
    }
