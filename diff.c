@@ -124,7 +124,7 @@ int main(int argc, const char** argv) {
                break;
             case DELETE:
                i--;
-               snprintf(buffer[buf_index++], 20, "%lx,%d,%hhx", i_whole, DELETE, origptr[i]);
+               snprintf(buffer[buf_index++], 20, "%lx,%d", i_whole, DELETE);
                score--;
                break;
             default:

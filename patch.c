@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "common.h"
 
 int main(int argc, const char** argv) {
@@ -31,27 +32,32 @@ int main(int argc, const char** argv) {
    char new_num[500000];
    size_t cnt;
    int action;
+   size_t i = 0;
    for (cnt=0;!feof(fp);cnt++) {
-      fscanf(fp, "%lx,%d,%hhx\n", &cnt_num[cnt], &action, &new_num[cnt]);
+      fscanf(fp, "%lx,%d", &cnt_num[cnt], &action);
       // TODO 想定外の値に対してエラー
       act[cnt] = (Action)action;
-   }
-   fclose(fp);
-   size_t i=0;
-   for (size_t cmd =0;cmd<cnt;cmd++) {
-      while (i < cnt_num[cmd]) {
+      while (i < cnt_num[cnt]) {
          putchar(orig[i]);
          i++;
       }
-      switch(act[cmd]) {
+      switch(act[cnt]) {
          case SUBSTITUTE:
-            putchar(new_num[cmd]);
+            fscanf(fp, ",%hhx\n", &new_num[cnt]);
+            putchar(new_num[cnt]);
             i++;
             break;
          case INSERT:
-            putchar(new_num[cmd]);
+            fscanf(fp, ",%hhx\n", &new_num[cnt]);
+            putchar(new_num[cnt]);
+            char c;
+            /*
+            while (fscanf(fp, " %hhx", &c) > 0) {
+               putchar(c);
+            }*/
             break;
          case DELETE:
+            fscanf(fp, "\n");
             i++;
             break;
          default:
@@ -63,5 +69,6 @@ int main(int argc, const char** argv) {
       putchar(orig[i]);
       i++;
    }
+   fclose(fp);
    return 0;
 }
