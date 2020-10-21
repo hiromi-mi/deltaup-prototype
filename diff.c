@@ -5,7 +5,7 @@
 #include "common.h"
 
 // http://karel.tsuda.ac.jp/lec/EditDistance/
-#define i_whole (i + (wind_cnt-1)*(WINDOW_SIZE-1))
+#define i_whole (i + wind_cnt*(WINDOW_SIZE-1))
 
 int argmin(int* costs, size_t n) {
    assert(n > 0);
@@ -60,7 +60,7 @@ int main(int argc, const char** argv) {
       table[i] = calloc(WINDOW_SIZE * sizeof(int), 1);
       act[i]   = calloc(WINDOW_SIZE * sizeof(Action), 1);
    }
-   for (int wind_cnt=1;(wind_cnt-1)*WINDOW_CHARS< max(orignum, newnum);wind_cnt++) {
+   for (int wind_cnt=0;wind_cnt*WINDOW_CHARS< max(orignum, newnum);wind_cnt++) {
       Action buffer_act[WINDOW_SIZE*2+10];
       char buffer_char[WINDOW_SIZE*2+10][WINDOW_SIZE];
       size_t buffer_char_len[WINDOW_SIZE*2+10];
@@ -79,19 +79,19 @@ int main(int argc, const char** argv) {
          act[0][j] = INSERT;
       }
 
-      size_t i_max = min(WINDOW_SIZE, orignum - (wind_cnt-1)*WINDOW_CHARS);
-      size_t j_max = min(WINDOW_SIZE, newnum - (wind_cnt-1)*WINDOW_CHARS);
+      size_t i_max = min(WINDOW_SIZE, orignum - wind_cnt*WINDOW_CHARS);
+      size_t j_max = min(WINDOW_SIZE, newnum - wind_cnt*WINDOW_CHARS);
 
       // 片方が超過したときのため
-      if ((wind_cnt-1)*WINDOW_CHARS >= orignum) {
+      if (wind_cnt*WINDOW_CHARS >= orignum) {
          i_max = 1;
       }
-      if ((wind_cnt-1)*WINDOW_CHARS >= newnum) {
+      if (wind_cnt*WINDOW_CHARS >= newnum) {
          j_max = 1;
       }
       for (size_t i=1;i<i_max;i++) {
          for (size_t j=1;j<j_max;j++) {
-            int costs[4] = {1000000, 1000000, 1000000, 1000000};
+            int costs[4] = {INF, INF, INF, INF};
             costs[0] = table[i-1][j]+1; // DELETE
             costs[1] = table[i][j-1]+1; // INSERT
             costs[2] = table[i-1][j-1]+1; // SUBSTITUTE

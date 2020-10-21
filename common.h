@@ -8,3 +8,5 @@ typedef enum {
 
 #define max(x,y) ((x) < (y) ? y : x)
 #define min(x,y) ((y) < (x) ? y : x)
+
+#define INF 1000000
