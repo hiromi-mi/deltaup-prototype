@@ -1,4 +1,4 @@
-all:	1 2 5 7 8 6 3 4
+all:	1 2 5 7 8 6 3 4 9
 1:
 	../diff 1.old 1.new > 1.diff
 	../patch 1.old 1.diff > 1.result
@@ -31,5 +31,9 @@ all:	1 2 5 7 8 6 3 4
 	../diff 8.old 8.new > 8.diff
 	../patch 8.old 8.diff > 8.result
 	diff 8.new 8.result
+9:
+	../diff 9.old 9.new > 9.diff
+	../patch 9.old 9.diff > 9.result
+	diff 9.new 9.result
 
 .PHONY: all fail
