@@ -56,7 +56,7 @@ int main(int argc, const char **argv) {
    char *newptr = new;
 
    // +1 は aaa とあったとき, |aaa, a|aa, aa|a とかするように
-   const size_t WINDOW_SIZE = (1 << 10) + 1;
+   const size_t WINDOW_SIZE = (1 << 7) + 1;
    // ここを-1 しないと WINDOW は文字数+1 でできていることに矛盾
    const size_t WINDOW_CHARS = WINDOW_SIZE - 1;
    int *table[WINDOW_SIZE];
@@ -109,7 +109,7 @@ int main(int argc, const char **argv) {
       long i = i_max - 1;
       long j = j_max - 1;
       int score = table[i][j];
-      fprintf(stderr, "score: %d (%ld, %ld)\n", score, i, j);
+      // fprintf(stderr, "score: %d (%ld, %ld)\n", score, i, j);
       while (i >= 0 && j >= 0) {
          switch (act[i][j]) {
             case MATCH:
