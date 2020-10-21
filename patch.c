@@ -34,9 +34,11 @@ int main(int argc, const char** argv) {
    size_t len;
    size_t i = 0;
    for (cnt=0;!feof(fp);cnt++) {
-      fscanf(fp, "%lx,%d", &cnt_num, &action);
+      if (fscanf(fp, "%lx,%d", &cnt_num, &action) < 0) {
+         break;
+      }
       // TODO 想定外の値に対してエラー
-      while (i < cnt_num) {
+      while (i < cnt_num && i < orignum) {
          putchar(orig[i]);
          i++;
       }
@@ -59,7 +61,7 @@ int main(int argc, const char** argv) {
             i+=len;
             break;
          default:
-            fprintf(stderr, "Error: %d\n", action);
+            fprintf(stderr, "Error: %d on Commond No. %ld\n", action, cnt);
             exit(-1);
       }
    }
