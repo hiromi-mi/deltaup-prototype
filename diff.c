@@ -79,16 +79,9 @@ int main(int argc, const char** argv) {
          act[0][j] = INSERT;
       }
 
-      size_t i_max = min(WINDOW_SIZE, orignum - wind_cnt*WINDOW_CHARS);
-      size_t j_max = min(WINDOW_SIZE, newnum - wind_cnt*WINDOW_CHARS);
+      size_t i_max = min(WINDOW_SIZE, max(orignum - wind_cnt*WINDOW_CHARS, 1));
+      size_t j_max = min(WINDOW_SIZE, max(newnum - wind_cnt*WINDOW_CHARS, 1));
 
-      // 片方が超過したときのため
-      if (wind_cnt*WINDOW_CHARS >= orignum) {
-         i_max = 1;
-      }
-      if (wind_cnt*WINDOW_CHARS >= newnum) {
-         j_max = 1;
-      }
       for (size_t i=1;i<i_max;i++) {
          for (size_t j=1;j<j_max;j++) {
             int costs[4] = {INF, INF, INF, INF};
