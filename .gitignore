@@ -4,3 +4,4 @@ test/*.diff
 test/*.result
 diff
 patch
+*.o
