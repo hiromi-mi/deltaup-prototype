@@ -1,5 +1,6 @@
 #include "common.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,34 +21,39 @@ int argmin(int *costs, size_t n) {
    return minindex;
 }
 
+char *read_file(const char *filename, size_t *len) {
+   const int MAX_LEN = 1 << 22;
+   char *file = calloc(MAX_LEN, 1);
+   FILE *fp;
+
+   if (file == NULL) {
+      perror("calloc");
+      exit(-1);
+   }
+
+   fp = fopen(filename, "r");
+   if (fp == NULL) {
+      perror("fopen");
+      exit(-1);
+   }
+   *len = fread(file, 1, MAX_LEN - 1, fp) + 1;
+   // 「0文字目」が存在しないため
+   fclose(fp);
+
+   return file;
+}
+
 int main(int argc, const char **argv) {
    if (argc <= 2) {
       fprintf(stderr, "Usage: oldfile newfile\n");
       exit(-1);
    }
-   const int ORIG_MAX = 1 << 22;
-   const int NEW_MAX = 1 << 22;
-   char *orig = calloc(ORIG_MAX, 1);
-   char *new = calloc(NEW_MAX, 1);
 
-   FILE *fp;
-   fp = fopen(argv[1], "r");
-   if (fp == NULL) {
-      exit(-1);
-   }
-   // 「0文字目」が存在しない
-   const size_t orignum = fread(orig, 1, ORIG_MAX - 1, fp) + 1;
+   size_t orignum, newnum;
+   char *orig = read_file(argv[1], &orignum);
+   char *new = read_file(argv[2], &newnum);
    char *origptr = orig;
-   fclose(fp);
-
-   fp = fopen(argv[2], "r");
-   if (fp == NULL) {
-      exit(-1);
-   }
-   // 「0文字目」が存在しない, \0 をスルー
-   const size_t newnum = fread(new, 1, NEW_MAX - 1, fp) + 1;
    char *newptr = new;
-   fclose(fp);
 
    // +1 は aaa とあったとき, |aaa, a|aa, aa|a とかするように
    const size_t WINDOW_SIZE = (1 << 10) + 1;
