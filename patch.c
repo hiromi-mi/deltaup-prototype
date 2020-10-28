@@ -56,7 +56,7 @@ int main(int argc, const char **argv) {
             // while (fscanf(fp, ",%hhx", &new_num) > 0) {
             assert(fread(&tmp, 1, 1, fp) > 0);
             for (unsigned char j = 0; j < tmp; j++) {
-               fread(&new_num, 1, 1, fp);
+               assert(fread(&new_num, 1, 1, fp) > 0);
                putchar(new_num);
                i++;
             }
@@ -77,6 +77,7 @@ int main(int argc, const char **argv) {
             break;
          case DELETE:
             assert(fread(&len, 1, 1, fp) > 0);
+            assert(len > 0);
             i += len;
             break;
          default:

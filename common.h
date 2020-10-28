@@ -11,7 +11,7 @@
 #define DELETE 3
 typedef char Action;
 
-#define max(x, y) ((x) < (y) ? y : x)
-#define min(x, y) ((y) < (x) ? y : x)
+#define max(x, y) ((x) < (y) ? (y) : (x))
+#define min(x, y) ((y) < (x) ? (y) : (x))
 
 #define INF 1000000

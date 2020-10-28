@@ -85,9 +85,10 @@ int main(int argc, const char **argv) {
          act[0][j] = INSERT;
       }
 
-      size_t i_max =
-          min(WINDOW_SIZE, max(orignum - wind_cnt * WINDOW_CHARS, 1));
-      size_t j_max = min(WINDOW_SIZE, max(newnum - wind_cnt * WINDOW_CHARS, 1));
+      size_t i_max = min(WINDOW_SIZE,
+                         max((long)orignum - wind_cnt * (long)WINDOW_CHARS, 1));
+      size_t j_max = min(WINDOW_SIZE,
+                         max((long)newnum - wind_cnt * (long)WINDOW_CHARS, 1));
 
       for (size_t i = 1; i < i_max; i++) {
          for (size_t j = 1; j < j_max; j++) {
@@ -108,7 +109,7 @@ int main(int argc, const char **argv) {
       long i = i_max - 1;
       long j = j_max - 1;
       int score = table[i][j];
-      // fprintf(stderr, "score: %d (%ld, %ld)\n", score, i, j);
+      fprintf(stderr, "score: %d (%ld, %ld)\n", score, i_max, j_max);
       while (i >= 0 && j >= 0) {
          switch (act[i][j]) {
             case MATCH:
@@ -183,6 +184,7 @@ int main(int argc, const char **argv) {
                fwrite(&buffer_act[k], 1, 1, stdout);
                fwrite(&buffer_char_len[k], 1, 1, stdout);
                // 逆順で出力
+               assert(buffer_char_len[k] > 0);
                for (long l = buffer_char_len[k] - 1; l >= 0; l--) {
                   fwrite(&buffer_char[k][l], 1, 1, stdout);
                }
@@ -195,6 +197,7 @@ int main(int argc, const char **argv) {
                */
                break;
             case SUBSTITUTE:
+               assert(buffer_char_len[k] > 0);
                tmp = buffer_index[k] + 1 - buffer_char_len[k];
                fwrite(&tmp, sizeof(buffer_index[k]), 1, stdout);
                fwrite(&buffer_act[k], 1, 1, stdout);
