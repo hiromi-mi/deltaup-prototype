@@ -70,7 +70,7 @@ int main(int argc, const char **argv) {
         wind_cnt++) {
       Action buffer_act[WINDOW_SIZE * 2 + 10];
       char buffer_char[WINDOW_SIZE * 2 + 10][WINDOW_SIZE];
-      size_t buffer_char_len[WINDOW_SIZE * 2 + 10];
+      unsigned char buffer_char_len[WINDOW_SIZE * 2 + 10];
       size_t buffer_index[WINDOW_SIZE * 2 + 10];
       size_t buf_index = 0;
       // 最初の位置での計算
@@ -92,16 +92,16 @@ int main(int argc, const char **argv) {
       for (size_t i = 1; i < i_max; i++) {
          for (size_t j = 1; j < j_max; j++) {
             int costs[4] = {INF, INF, INF, INF};
-            costs[0] = table[i - 1][j] + 1;     // DELETE
-            costs[1] = table[i][j - 1] + 1;     // INSERT
-            costs[2] = table[i - 1][j - 1] + 1; // SUBSTITUTE
+            costs[DELETE] = table[i - 1][j] + 1;         // DELETE
+            costs[INSERT] = table[i][j - 1] + 1;         // INSERT
+            costs[SUBSTITUTE] = table[i - 1][j - 1] + 1; // SUBSTITUTE
             if (origptr[i - 1] == newptr[j - 1]) {
-               costs[3] = table[i - 1][j - 1]; // MATCH
+               costs[MATCH] = table[i - 1][j - 1]; // MATCH
             }
 
             int index = argmin(costs, 4);
             // |= ではいけない
-            act[i][j] = 1 << index;
+            act[i][j] = index;
             table[i][j] = costs[index];
          }
       }
@@ -123,7 +123,8 @@ int main(int argc, const char **argv) {
                if (buf_index == 0 || buffer_act[buf_index - 1] != SUBSTITUTE ||
                    buffer_index[buf_index - 1] -
                            buffer_char_len[buf_index - 1] !=
-                       i_whole) {
+                       i_whole ||
+                   buffer_char_len[buf_index] > 254) {
                   buffer_act[buf_index] = SUBSTITUTE;
                   buffer_index[buf_index] = i_whole;
                   buffer_char[buf_index][0] = newptr[j];
@@ -138,7 +139,8 @@ int main(int argc, const char **argv) {
             case INSERT:
                j--;
                if (buf_index == 0 || buffer_act[buf_index - 1] != INSERT ||
-                   buffer_index[buf_index - 1] != i_whole) {
+                   buffer_index[buf_index - 1] != i_whole ||
+                   buffer_char_len[buf_index] > 254) {
                   buffer_act[buf_index] = INSERT;
                   buffer_char[buf_index][0] = newptr[j];
                   buffer_char_len[buf_index] = 1;
@@ -172,27 +174,54 @@ int main(int argc, const char **argv) {
       }
       assert(score == 0);
 
+      long tmp;
       // 逆順で入力されるのでその逆順で出力
       for (long k = buf_index - 1; k >= 0; k--) {
          switch (buffer_act[k]) {
             case INSERT:
+               fwrite(&buffer_index[k], sizeof(buffer_index[k]), 1, stdout);
+               fwrite(&buffer_act[k], 1, 1, stdout);
+               fwrite(&buffer_char_len[k], 1, 1, stdout);
+               // 逆順で出力
+               for (long l = buffer_char_len[k] - 1; l >= 0; l--) {
+                  fwrite(&buffer_char[k][l], 1, 1, stdout);
+               }
+               /*
                printf("%lx,%d", buffer_index[k], buffer_act[k]);
                for (long l = buffer_char_len[k] - 1; l >= 0; l--) {
                   printf(",%hhx", buffer_char[k][l]);
                }
                printf("\n");
+               */
                break;
             case SUBSTITUTE:
+               tmp = buffer_index[k] + 1 - buffer_char_len[k];
+               fwrite(&tmp, sizeof(buffer_index[k]), 1, stdout);
+               fwrite(&buffer_act[k], 1, 1, stdout);
+               fwrite(&buffer_char_len[k], 1, 1, stdout);
+               for (long l = buffer_char_len[k] - 1; l >= 0; l--) {
+                  fwrite(&buffer_char[k][l], 1, 1, stdout);
+               }
+               // これは使えない
+               // fwrite(buffer_char[k], 1, buffer_char_len[k], stdout);
+               /*j
                printf("%lx,%d", buffer_index[k] + 1 - buffer_char_len[k],
                       buffer_act[k]);
                for (long l = buffer_char_len[k] - 1; l >= 0; l--) {
                   printf(",%hhx", buffer_char[k][l]);
                }
                printf("\n");
+               */
                break;
             case DELETE:
+               tmp = buffer_index[k] + 1 - buffer_char_len[k];
+               fwrite(&tmp, sizeof(buffer_index[k]), 1, stdout);
+               fwrite(&buffer_act[k], 1, 1, stdout);
+               fwrite(&buffer_char_len[k], 1, 1, stdout);
+               /*
                printf("%lx,%d,%ld\n", buffer_index[k] + 1 - buffer_char_len[k],
                       buffer_act[k], buffer_char_len[k]);
+                      */
                break;
             default:
                assert(1);

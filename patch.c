@@ -24,18 +24,26 @@ int main(int argc, const char **argv) {
        fread(orig, sizeof(char), ORIG_MAX - 1, fp) / sizeof(char);
    fclose(fp);
 
-   fp = fopen(argv[2], "r");
+   fp = fopen(argv[2], "rb");
    if (fp == NULL) {
       exit(-1);
    }
    size_t cnt_num;
    char new_num;
    size_t cnt;
-   int action;
-   size_t len;
+   Action action;
+   // size_t len;
+   unsigned char len;
    size_t i = 0;
+   unsigned char tmp;
    for (cnt = 0; !feof(fp); cnt++) {
-      if (fscanf(fp, "%lx,%d", &cnt_num, &action) < 0) {
+      // if (fscanf(fp, "%lx,%d", &cnt_num, &action) < 0) {
+      if (fread(&cnt_num, sizeof(size_t), 1, fp) == 0) {
+         break;
+      }
+      assert(fread(&action, sizeof(Action), 1, fp) > 0);
+      if (ferror(fp) != 0) {
+         fputs("Error!\n", stderr);
          break;
       }
       // TODO 想定外の値に対してエラー
@@ -45,20 +53,30 @@ int main(int argc, const char **argv) {
       }
       switch ((Action)action) {
          case SUBSTITUTE:
-            while (fscanf(fp, ",%hhx", &new_num) > 0) {
+            // while (fscanf(fp, ",%hhx", &new_num) > 0) {
+            assert(fread(&tmp, 1, 1, fp) > 0);
+            for (unsigned char j = 0; j < tmp; j++) {
+               fread(&new_num, 1, 1, fp);
                putchar(new_num);
                i++;
             }
-            fscanf(fp, "\n");
+            // fscanf(fp, "\n");
             break;
          case INSERT:
+            assert(fread(&tmp, 1, 1, fp) > 0);
+            for (unsigned char j = 0; j < tmp; j++) {
+               assert(fread(&new_num, 1, 1, fp) > 0);
+               putchar(new_num);
+            }
+            /*
             while (fscanf(fp, ",%hhx", &new_num) > 0) {
                putchar(new_num);
             }
             fscanf(fp, "\n");
+            */
             break;
          case DELETE:
-            fscanf(fp, ",%ld\n", &len);
+            assert(fread(&len, 1, 1, fp) > 0);
             i += len;
             break;
          default:
