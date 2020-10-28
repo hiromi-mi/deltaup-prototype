@@ -72,7 +72,6 @@ int main(int argc, const char **argv) {
       char buffer_char[WINDOW_SIZE * 2 + 10][WINDOW_SIZE];
       size_t buffer_char_len[WINDOW_SIZE * 2 + 10];
       size_t buffer_index[WINDOW_SIZE * 2 + 10];
-      char buffer[WINDOW_SIZE * 2 + 10][20];
       size_t buf_index = 0;
       // 最初の位置での計算
       table[0][0] = 0;
@@ -134,8 +133,6 @@ int main(int argc, const char **argv) {
                   buffer_char[buf_index - 1][buffer_char_len[buf_index - 1]++] =
                       newptr[j];
                }
-               snprintf(buffer[buf_index], 20, "%lx,%d,%hhx", i_whole,
-                        SUBSTITUTE, newptr[j]);
                score--;
                break;
             case INSERT:
@@ -151,8 +148,6 @@ int main(int argc, const char **argv) {
                   buffer_char[buf_index - 1][buffer_char_len[buf_index - 1]++] =
                       newptr[j];
                }
-               snprintf(buffer[buf_index], 20, "%lx,%d,%hhx", i_whole, INSERT,
-                        newptr[j]);
                score--;
                break;
             case DELETE:
@@ -164,7 +159,6 @@ int main(int argc, const char **argv) {
                   buffer_act[buf_index] = DELETE;
                   buffer_index[buf_index] = i_whole;
                   buffer_char_len[buf_index] = 1;
-                  snprintf(buffer[buf_index], 20, "%lx,%d,1", i_whole, DELETE);
                   buf_index++;
                } else {
                   buffer_char_len[buf_index - 1]++;
@@ -204,7 +198,6 @@ int main(int argc, const char **argv) {
                assert(1);
                break;
          }
-         // puts(buffer[k]);
       }
 
       origptr += WINDOW_CHARS;
