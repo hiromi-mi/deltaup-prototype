@@ -66,6 +66,8 @@ int main(int argc, const char **argv) {
       table[i] = calloc(WINDOW_SIZE * sizeof(int), 1);
       act[i] = calloc(WINDOW_SIZE * sizeof(Action), 1);
    }
+
+   size_t prev_last_index = 0;
    for (int wind_cnt = 0; wind_cnt * WINDOW_CHARS < max(orignum, newnum);
         wind_cnt++) {
       Action buffer_act[WINDOW_SIZE * 2 + 10];
@@ -73,6 +75,7 @@ int main(int argc, const char **argv) {
       char buffer_char_add[WINDOW_SIZE * 2 + 10][WINDOW_SIZE];
       unsigned char buffer_char_len[WINDOW_SIZE * 2 + 10];
       size_t buffer_index[WINDOW_SIZE * 2 + 10];
+      size_t buffer_index_delta[WINDOW_SIZE * 2 + 10];
       size_t buf_index = 0;
       // 最初の位置での計算
       table[0][0] = 0;
@@ -181,12 +184,30 @@ int main(int argc, const char **argv) {
       }
       assert(score == 0);
 
-      long tmp;
+      // 番兵
+      buffer_index[buf_index] = prev_last_index;
+      for (long k = buf_index - 1; k >= 0; k--) {
+         switch (buffer_act[k]) {
+            case SUBSTITUTE:
+            case ADD:
+            case DELETE:
+               buffer_index[k] = (buffer_index[k] + 1 - buffer_char_len[k]);
+               break;
+            default:
+               break;
+         }
+         buffer_index_delta[k] = buffer_index[k] - buffer_index[k + 1];
+      }
+      if (buf_index > 0) {
+         prev_last_index = buffer_index[0];
+      }
+
       // 逆順で入力されるのでその逆順で出力
       for (long k = buf_index - 1; k >= 0; k--) {
          switch (buffer_act[k]) {
             case INSERT:
-               fwrite(&buffer_index[k], sizeof(buffer_index[k]), 1, stdout);
+               fwrite(&buffer_index_delta[k], sizeof(buffer_index_delta[k]), 1,
+                      stdout);
                fwrite(&buffer_act[k], 1, 1, stdout);
                fwrite(&buffer_char_len[k], 1, 1, stdout);
                // 逆順で出力
@@ -194,19 +215,12 @@ int main(int argc, const char **argv) {
                for (long l = buffer_char_len[k] - 1; l >= 0; l--) {
                   fwrite(&buffer_char[k][l], 1, 1, stdout);
                }
-               /*
-               printf("%lx,%d", buffer_index[k], buffer_act[k]);
-               for (long l = buffer_char_len[k] - 1; l >= 0; l--) {
-                  printf(",%hhx", buffer_char[k][l]);
-               }
-               printf("\n");
-               */
                break;
             case SUBSTITUTE:
             case ADD:
                assert(buffer_char_len[k] > 0);
-               tmp = buffer_index[k] + 1 - buffer_char_len[k];
-               fwrite(&tmp, sizeof(buffer_index[k]), 1, stdout);
+               fwrite(&buffer_index_delta[k], sizeof(buffer_index_delta[k]), 1,
+                      stdout);
                fwrite(&buffer_act[k], 1, 1, stdout);
                fwrite(&buffer_char_len[k], 1, 1, stdout);
                if (buffer_act[k] == SUBSTITUTE) {
@@ -220,24 +234,13 @@ int main(int argc, const char **argv) {
                }
                // これは使えない
                // fwrite(buffer_char[k], 1, buffer_char_len[k], stdout);
-               /*j
-               printf("%lx,%d", buffer_index[k] + 1 - buffer_char_len[k],
-                      buffer_act[k]);
-               for (long l = buffer_char_len[k] - 1; l >= 0; l--) {
-                  printf(",%hhx", buffer_char[k][l]);
-               }
-               printf("\n");
-               */
                break;
             case DELETE:
-               tmp = buffer_index[k] + 1 - buffer_char_len[k];
-               fwrite(&tmp, sizeof(buffer_index[k]), 1, stdout);
+               // tmp = buffer_index_delta[k] +1- buffer_char_len[k];
+               fwrite(&buffer_index_delta[k], sizeof(buffer_index_delta[k]), 1,
+                      stdout);
                fwrite(&buffer_act[k], 1, 1, stdout);
                fwrite(&buffer_char_len[k], 1, 1, stdout);
-               /*
-               printf("%lx,%d,%ld\n", buffer_index[k] + 1 - buffer_char_len[k],
-                      buffer_act[k], buffer_char_len[k]);
-                      */
                break;
             default:
                assert(1);

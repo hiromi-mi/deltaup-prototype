@@ -28,7 +28,8 @@ int main(int argc, const char **argv) {
    if (fp == NULL) {
       exit(-1);
    }
-   size_t cnt_num;
+   size_t cnt_num = 0;
+   size_t prev_cnt_num = 0, cnt_num_delta;
    char new_num;
    size_t cnt;
    Action action;
@@ -38,9 +39,11 @@ int main(int argc, const char **argv) {
    unsigned char tmp;
    for (cnt = 0; !feof(fp); cnt++) {
       // if (fscanf(fp, "%lx,%d", &cnt_num, &action) < 0) {
-      if (fread(&cnt_num, sizeof(size_t), 1, fp) == 0) {
+      prev_cnt_num = cnt_num;
+      if (fread(&cnt_num_delta, sizeof(size_t), 1, fp) == 0) {
          break;
       }
+      cnt_num = cnt_num_delta + prev_cnt_num;
       assert(fread(&action, sizeof(Action), 1, fp) > 0);
       if (ferror(fp) != 0) {
          fputs("Error!\n", stderr);
@@ -94,6 +97,7 @@ int main(int argc, const char **argv) {
       putchar(orig[i]);
       i++;
    }
+   // fprintf(stderr, "cnt: %ld\n", cnt);
    fclose(fp);
    return 0;
 }
