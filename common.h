@@ -9,6 +9,7 @@
 #define SUBSTITUTE 1
 #define INSERT 2
 #define DELETE 3
+#define ADD 4
 typedef char Action;
 
 #define max(x, y) ((x) < (y) ? (y) : (x))

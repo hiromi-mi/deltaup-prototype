@@ -53,11 +53,16 @@ int main(int argc, const char **argv) {
       }
       switch ((Action)action) {
          case SUBSTITUTE:
+         case ADD:
             // while (fscanf(fp, ",%hhx", &new_num) > 0) {
             assert(fread(&tmp, 1, 1, fp) > 0);
             for (unsigned char j = 0; j < tmp; j++) {
                assert(fread(&new_num, 1, 1, fp) > 0);
-               putchar(new_num);
+               if ((Action)action == SUBSTITUTE) {
+                  putchar(new_num);
+               } else if ((Action)action == ADD) {
+                  putchar(new_num + orig[i]);
+               }
                i++;
             }
             // fscanf(fp, "\n");

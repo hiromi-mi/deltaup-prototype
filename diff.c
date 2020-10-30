@@ -70,6 +70,7 @@ int main(int argc, const char **argv) {
         wind_cnt++) {
       Action buffer_act[WINDOW_SIZE * 2 + 10];
       char buffer_char[WINDOW_SIZE * 2 + 10][WINDOW_SIZE];
+      char buffer_char_add[WINDOW_SIZE * 2 + 10][WINDOW_SIZE];
       unsigned char buffer_char_len[WINDOW_SIZE * 2 + 10];
       size_t buffer_index[WINDOW_SIZE * 2 + 10];
       size_t buf_index = 0;
@@ -109,7 +110,7 @@ int main(int argc, const char **argv) {
       long i = i_max - 1;
       long j = j_max - 1;
       int score = table[i][j];
-      fprintf(stderr, "score: %d (%ld, %ld)\n", score, i_max, j_max);
+      // fprintf(stderr, "score: %d (%ld, %ld)\n", score, i_max, j_max);
       while (i >= 0 && j >= 0) {
          switch (act[i][j]) {
             case MATCH:
@@ -121,6 +122,7 @@ int main(int argc, const char **argv) {
                j--;
                //  buffer_index[buf_index-1]-buffer_char_len[buf_index-1]
                //  ここが - なのは逆順だから
+               //  TODO 必要に応じて SUBSTITUTE を ADD にする
                if (buf_index == 0 || buffer_act[buf_index - 1] != SUBSTITUTE ||
                    buffer_index[buf_index - 1] -
                            buffer_char_len[buf_index - 1] !=
@@ -129,9 +131,13 @@ int main(int argc, const char **argv) {
                   buffer_act[buf_index] = SUBSTITUTE;
                   buffer_index[buf_index] = i_whole;
                   buffer_char[buf_index][0] = newptr[j];
+                  buffer_char_add[buf_index][0] = newptr[j] - origptr[i];
                   buffer_char_len[buf_index] = 1;
                   buf_index++;
                } else {
+                  buffer_char_add[buf_index - 1]
+                                 [buffer_char_len[buf_index - 1]] =
+                                     newptr[j] - origptr[i];
                   buffer_char[buf_index - 1][buffer_char_len[buf_index - 1]++] =
                       newptr[j];
                }
@@ -197,13 +203,20 @@ int main(int argc, const char **argv) {
                */
                break;
             case SUBSTITUTE:
+            case ADD:
                assert(buffer_char_len[k] > 0);
                tmp = buffer_index[k] + 1 - buffer_char_len[k];
                fwrite(&tmp, sizeof(buffer_index[k]), 1, stdout);
                fwrite(&buffer_act[k], 1, 1, stdout);
                fwrite(&buffer_char_len[k], 1, 1, stdout);
-               for (long l = buffer_char_len[k] - 1; l >= 0; l--) {
-                  fwrite(&buffer_char[k][l], 1, 1, stdout);
+               if (buffer_act[k] == SUBSTITUTE) {
+                  for (long l = buffer_char_len[k] - 1; l >= 0; l--) {
+                     fwrite(&buffer_char[k][l], 1, 1, stdout);
+                  }
+               } else if (buffer_act[k] == ADD) {
+                  for (long l = buffer_char_len[k] - 1; l >= 0; l--) {
+                     fwrite(&buffer_char_add[k][l], 1, 1, stdout);
+                  }
                }
                // これは使えない
                // fwrite(buffer_char[k], 1, buffer_char_len[k], stdout);
