@@ -35,33 +35,52 @@ int main(int argc, const char **argv) {
    size_t cnt;
    Action action;
    // size_t len;
-   unsigned char len;
    size_t i = 0;
-   unsigned char tmp;
+   unsigned char len;
    for (cnt = 0; !feof(fp); cnt++) {
       // if (fscanf(fp, "%lx,%d", &cnt_num, &action) < 0) {
       prev_cnt_num = cnt_num;
       if (fread(&cnt_num_delta, sizeof(cnt_num_delta), 1, fp) == 0) {
          break;
       }
+      unsigned int act1 = cnt_num_delta & (1 << 7);
+      cnt_num_delta &= ~(1 << 7);
       cnt_num = cnt_num_delta + prev_cnt_num;
-      fprintf(stderr, "%ld %u %ld\n", prev_cnt_num, cnt_num_delta, cnt_num);
-      assert(fread(&action, sizeof(Action), 1, fp) > 0);
+      // fprintf(stderr, "%ld %u %ld\n", prev_cnt_num, cnt_num_delta, cnt_num);
+      // assert(fread(&action, sizeof(Action), 1, fp) > 0);
+      /*
       if (ferror(fp) != 0) {
          fputs("Error!\n", stderr);
          break;
       }
+      */
       // TODO 想定外の値に対してエラー
       while (i < cnt_num && i < orignum) {
          putchar(orig[i]);
          i++;
       }
+      assert(fread(&len, 1, 1, fp) > 0);
+      unsigned int act2 = len & (1 << 7);
+      len &= ~(1 << 7);
+      if (act1 == 0) {
+         if (act2 == 0) {
+            action = SEEK;
+         } else {
+            action = SUBSTITUTE;
+         }
+      } else {
+         if (act2 == 0) {
+            action = INSERT;
+         } else {
+            action = DELETE;
+         }
+      }
+      fprintf(stderr, "action: %d, cnt_num: %ld, len: %u\n", action, cnt_num,
+              len);
       switch ((Action)action) {
          case SUBSTITUTE:
          case ADD:
-            // while (fscanf(fp, ",%hhx", &new_num) > 0) {
-            assert(fread(&tmp, 1, 1, fp) > 0);
-            for (unsigned char j = 0; j < tmp; j++) {
+            for (unsigned char j = 0; j < len; j++) {
                assert(fread(&new_num, 1, 1, fp) > 0);
                if ((Action)action == SUBSTITUTE) {
                   putchar(new_num);
@@ -73,8 +92,7 @@ int main(int argc, const char **argv) {
             // fscanf(fp, "\n");
             break;
          case INSERT:
-            assert(fread(&tmp, 1, 1, fp) > 0);
-            for (unsigned char j = 0; j < tmp; j++) {
+            for (unsigned char j = 0; j < len; j++) {
                assert(fread(&new_num, 1, 1, fp) > 0);
                putchar(new_num);
             }
@@ -86,7 +104,6 @@ int main(int argc, const char **argv) {
             */
             break;
          case DELETE:
-            assert(fread(&len, 1, 1, fp) > 0);
             i += len;
             break;
          case SEEK:

@@ -8,6 +8,8 @@
 // http://karel.tsuda.ac.jp/lec/EditDistance/
 #define i_whole (i + wind_cnt * (WINDOW_SIZE - 1))
 
+#define INTEGRATE_MAX (128 - 1)
+
 int argmin(int *costs, size_t n) {
    assert(n > 0);
    int minindex = 0;
@@ -58,7 +60,7 @@ int main(int argc, const char **argv) {
    // +1 は aaa とあったとき, |aaa, a|aa, aa|a とかするように
    // ここが 256 を上回ると buffer_index_delta を unsigned char
    // ではない型にしないといけない
-   const size_t WINDOW_SIZE = (1 << 7) + 1;
+   const size_t WINDOW_SIZE = (1 << 7);
    // ここを-1 しないと WINDOW は文字数+1 でできていることに矛盾
    const size_t WINDOW_CHARS = WINDOW_SIZE - 1;
    int *table[WINDOW_SIZE];
@@ -132,7 +134,7 @@ int main(int argc, const char **argv) {
                    buffer_index[buf_index - 1] -
                            buffer_char_len[buf_index - 1] !=
                        i_whole ||
-                   buffer_char_len[buf_index] > 254) {
+                   buffer_char_len[buf_index] > INTEGRATE_MAX) {
                   buffer_act[buf_index] = SUBSTITUTE;
                   buffer_index[buf_index] = i_whole;
                   buffer_char[buf_index][0] = newptr[j];
@@ -152,7 +154,7 @@ int main(int argc, const char **argv) {
                j--;
                if (buf_index == 0 || buffer_act[buf_index - 1] != INSERT ||
                    buffer_index[buf_index - 1] != i_whole ||
-                   buffer_char_len[buf_index] > 254) {
+                   buffer_char_len[buf_index] > INTEGRATE_MAX) {
                   buffer_act[buf_index] = INSERT;
                   buffer_char[buf_index][0] = newptr[j];
                   buffer_char_len[buf_index] = 1;
@@ -186,6 +188,7 @@ int main(int argc, const char **argv) {
       }
       assert(score == 0);
 
+      char temp[WINDOW_SIZE + 1];
       for (long k = buf_index - 1; k >= 0; k--) {
          switch (buffer_act[k]) {
             case SUBSTITUTE:
@@ -196,13 +199,11 @@ int main(int argc, const char **argv) {
             default:
                break;
          }
-      }
-      char temp[WINDOW_SIZE + 1];
-      for (long k = buf_index - 1; k >= 0; k--) {
+
          switch (buffer_act[k]) {
             case SUBSTITUTE:
             case ADD:
-            case INSERT: {
+            case INSERT:
                for (int i = 0; i < buffer_char_len[k]; i++) {
                   temp[i] = buffer_char[k][i];
                }
@@ -210,30 +211,39 @@ int main(int argc, const char **argv) {
                   buffer_char[k][buffer_char_len[k] - i - 1] = temp[i];
                }
                break;
-            }
+            default:
+               break;
          }
       }
-      /*
-         if (buffer_act[k] == SUBSTITUTE && buffer_act[k+1] == SUBSTITUTE) {
-            int diff = (long)buffer_index[k] - ( (long)buffer_index[k+1]-
-      buffer_char_len[k+1]); assert(diff >= 0); if (diff < 0 &&
-      buffer_char_len[k] + buffer_char_len[k+1] + diff < 255) { buffer_act[k+1]
-      = SUBSTITUTE; buffer_act[k] = SKIP; buffer_char_len[k+1] =
-      buffer_char_len[k+1] + diff + buffer_char_len[k]; for (long
-      l=buffer_char_len[k+1];l>=0;l--) { char temp =
-      buffer_char[k+1][buffer_char_len[k+1]-l];
-                  buffer_char[k+1][buffer_char_len[k+1]-l] =
-      new[buffer_index[k+1]+l]; fprintf(stderr, "%d %d\n", temp,
-      buffer_char[k+1][buffer_char_len[k+1]-l]); fprintf(stderr, "%d %d\n",
-      buffer_char[k][l-diff-buffer_char_len[k]], buffer_char[k+1][l]);
-               }
-            }
-         }
-      }*/
+
+      //      for (long k = buf_index - 2; k >= 0; k--) {
+      //         if (buffer_act[k] == SUBSTITUTE && buffer_act[k + 1] ==
+      //         SUBSTITUTE) {
+      //            int diff = buffer_index[k] -buffer_index[k + 1]  -
+      //            buffer_char_len[k+1]; assert(diff >= 0); if (diff <= 20 &&
+      //                buffer_char_len[k] + buffer_char_len[k + 1] + diff <
+      //                255) {
+      //               buffer_act[k + 1] = SUBSTITUTE;
+      //               buffer_act[k] = SKIP;
+      //               size_t temp = buffer_index[k] - buffer_index[k+1] +
+      //               buffer_char_len[k]; size_t l; for
+      //               (l=buffer_char_len[k+1]; l <
+      //               buffer_index[k]-buffer_index[k+1]; l++) {
+      //                  buffer_char[k+1][l] =  orig[buffer_index[k+1]+l];
+      //               }
+      //               for (; l < temp; l++) {
+      //                  buffer_char[k + 1][l] =
+      //                  buffer_char[k][l+buffer_index[k+1]-buffer_index[k]];
+      //               }
+      //               buffer_char_len[k + 1] = temp;
+      //               fputs(buffer_char[k+1], stderr);
+      //            }
+      //         }
+      //      }
       // しばらくぶりに使うとき
       // 番兵
       if (buf_index > 0 &&
-          buffer_index[buf_index - 1] - prev_last_index > 255) {
+          buffer_index[buf_index - 1] - prev_last_index > INTEGRATE_MAX) {
          // SEEK で次に使いうる最初のindex に移動
          buffer_act[buf_index] = SEEK;
          buffer_index[buf_index] = buffer_index[buf_index - 1];
@@ -247,8 +257,9 @@ int main(int argc, const char **argv) {
             continue;
          }
          buffer_index_delta[k] = buffer_index[k] - buffer_index[k + 1];
-         fprintf(stderr, "%ld: %u %ld: %d %d\n", k, buffer_index_delta[k],
-                 buffer_index[k], buffer_act[k], buffer_char_len[k]);
+         fprintf(stderr, "%ld: delta: %u index: %ld, act: %u len: %u\n", k,
+                 buffer_index_delta[k], buffer_index[k], buffer_act[k],
+                 buffer_char_len[k]);
       }
       if (buf_index > 0) {
          prev_last_index = buffer_index[0];
@@ -256,22 +267,29 @@ int main(int argc, const char **argv) {
 
       // 逆順で入力されるのでその逆順で出力
       for (long k = buf_index - 1; k >= 0; k--) {
+         if (buffer_act[k] == SKIP)
+            continue;
+         unsigned char deltaact1 = buffer_index_delta[k];
+         if (buffer_act[k] == INSERT || buffer_act[k] == DELETE) {
+            deltaact1 |= (1 << 7);
+         }
+         fwrite(&deltaact1, sizeof(deltaact1), 1, stdout);
+         unsigned char deltaact2 = buffer_char_len[k];
+         switch (buffer_act[k]) {
+            case SUBSTITUTE:
+            case DELETE:
+               deltaact2 |= (1 << 7);
+               break;
+         }
+         fwrite(&deltaact2, sizeof(deltaact1), 1, stdout);
          switch (buffer_act[k]) {
             case INSERT:
-               fwrite(&buffer_index_delta[k], sizeof(buffer_index_delta[k]), 1,
-                      stdout);
-               fwrite(&buffer_act[k], 1, 1, stdout);
-               fwrite(&buffer_char_len[k], 1, 1, stdout);
                assert(buffer_char_len[k] > 0);
                fwrite(buffer_char[k], 1, buffer_char_len[k], stdout);
                break;
             case SUBSTITUTE:
             case ADD:
                assert(buffer_char_len[k] > 0);
-               fwrite(&buffer_index_delta[k], sizeof(buffer_index_delta[k]), 1,
-                      stdout);
-               fwrite(&buffer_act[k], 1, 1, stdout);
-               fwrite(&buffer_char_len[k], 1, 1, stdout);
                if (buffer_act[k] == SUBSTITUTE) {
                   fwrite(buffer_char[k], 1, buffer_char_len[k], stdout);
                } else if (buffer_act[k] == ADD) {
@@ -279,21 +297,11 @@ int main(int argc, const char **argv) {
                }
                break;
             case DELETE:
-               // tmp = buffer_index_delta[k] +1- buffer_char_len[k];
-               fwrite(&buffer_index_delta[k], sizeof(buffer_index_delta[k]), 1,
-                      stdout);
-               fwrite(&buffer_act[k], 1, 1, stdout);
-               fwrite(&buffer_char_len[k], 1, 1, stdout);
                break;
             case SEEK:
                assert(buffer_index_delta[k] == 0);
-               fwrite(&buffer_index_delta[k], sizeof(buffer_index_delta[k]), 1,
-                      stdout);
-               fwrite(&buffer_act[k], 1, 1, stdout);
                fwrite(&buffer_index[k], sizeof(buffer_index[k]), 1, stdout);
                break;
-            case SKIP:
-               continue;
             default:
                assert(1);
                break;

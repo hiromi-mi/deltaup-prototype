@@ -11,7 +11,7 @@
 #define DELETE 3
 #define ADD 4
 #define SEEK 5
-#define SKIP 100
+#define SKIP 9
 typedef char Action;
 
 #define max(x, y) ((x) < (y) ? (y) : (x))
