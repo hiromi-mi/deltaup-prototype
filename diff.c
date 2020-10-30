@@ -56,6 +56,8 @@ int main(int argc, const char **argv) {
    char *newptr = new;
 
    // +1 は aaa とあったとき, |aaa, a|aa, aa|a とかするように
+   // ここが 256 を上回ると buffer_index_delta を unsigned char
+   // ではない型にしないといけない
    const size_t WINDOW_SIZE = (1 << 7) + 1;
    // ここを-1 しないと WINDOW は文字数+1 でできていることに矛盾
    const size_t WINDOW_CHARS = WINDOW_SIZE - 1;
@@ -75,7 +77,7 @@ int main(int argc, const char **argv) {
       char buffer_char_add[WINDOW_SIZE * 2 + 10][WINDOW_SIZE];
       unsigned char buffer_char_len[WINDOW_SIZE * 2 + 10];
       size_t buffer_index[WINDOW_SIZE * 2 + 10];
-      size_t buffer_index_delta[WINDOW_SIZE * 2 + 10];
+      unsigned char buffer_index_delta[WINDOW_SIZE * 2 + 10];
       size_t buf_index = 0;
       // 最初の位置での計算
       table[0][0] = 0;
@@ -184,6 +186,18 @@ int main(int argc, const char **argv) {
       }
       assert(score == 0);
 
+      // この Window 間何もコマンドがなかった
+      // 長さ0 のDELETE を入れて0文字index をずらす
+      if (buf_index == 0) {
+         buffer_act[buf_index] = DELETE;
+         buffer_index[buf_index] = i_whole;
+         buffer_char_len[buf_index] = 0;
+         buf_index++;
+
+         // これは不要
+         buffer_char[buf_index][0] = '\0';
+         buffer_char_add[buf_index][0] = '\0';
+      }
       // 番兵
       buffer_index[buf_index] = prev_last_index;
       for (long k = buf_index - 1; k >= 0; k--) {

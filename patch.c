@@ -29,7 +29,8 @@ int main(int argc, const char **argv) {
       exit(-1);
    }
    size_t cnt_num = 0;
-   size_t prev_cnt_num = 0, cnt_num_delta;
+   size_t prev_cnt_num = 0;
+   unsigned char cnt_num_delta;
    char new_num;
    size_t cnt;
    Action action;
@@ -40,7 +41,7 @@ int main(int argc, const char **argv) {
    for (cnt = 0; !feof(fp); cnt++) {
       // if (fscanf(fp, "%lx,%d", &cnt_num, &action) < 0) {
       prev_cnt_num = cnt_num;
-      if (fread(&cnt_num_delta, sizeof(size_t), 1, fp) == 0) {
+      if (fread(&cnt_num_delta, sizeof(cnt_num_delta), 1, fp) == 0) {
          break;
       }
       cnt_num = cnt_num_delta + prev_cnt_num;
@@ -85,7 +86,6 @@ int main(int argc, const char **argv) {
             break;
          case DELETE:
             assert(fread(&len, 1, 1, fp) > 0);
-            assert(len > 0);
             i += len;
             break;
          default:
