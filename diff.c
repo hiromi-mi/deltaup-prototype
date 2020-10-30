@@ -197,6 +197,39 @@ int main(int argc, const char **argv) {
                break;
          }
       }
+      char temp[WINDOW_SIZE + 1];
+      for (long k = buf_index - 1; k >= 0; k--) {
+         switch (buffer_act[k]) {
+            case SUBSTITUTE:
+            case ADD:
+            case INSERT: {
+               for (int i = 0; i < buffer_char_len[k]; i++) {
+                  temp[i] = buffer_char[k][i];
+               }
+               for (int i = 0; i < buffer_char_len[k]; i++) {
+                  buffer_char[k][buffer_char_len[k] - i - 1] = temp[i];
+               }
+               break;
+            }
+         }
+      }
+      /*
+         if (buffer_act[k] == SUBSTITUTE && buffer_act[k+1] == SUBSTITUTE) {
+            int diff = (long)buffer_index[k] - ( (long)buffer_index[k+1]-
+      buffer_char_len[k+1]); assert(diff >= 0); if (diff < 0 &&
+      buffer_char_len[k] + buffer_char_len[k+1] + diff < 255) { buffer_act[k+1]
+      = SUBSTITUTE; buffer_act[k] = SKIP; buffer_char_len[k+1] =
+      buffer_char_len[k+1] + diff + buffer_char_len[k]; for (long
+      l=buffer_char_len[k+1];l>=0;l--) { char temp =
+      buffer_char[k+1][buffer_char_len[k+1]-l];
+                  buffer_char[k+1][buffer_char_len[k+1]-l] =
+      new[buffer_index[k+1]+l]; fprintf(stderr, "%d %d\n", temp,
+      buffer_char[k+1][buffer_char_len[k+1]-l]); fprintf(stderr, "%d %d\n",
+      buffer_char[k][l-diff-buffer_char_len[k]], buffer_char[k+1][l]);
+               }
+            }
+         }
+      }*/
       // しばらくぶりに使うとき
       // 番兵
       if (buf_index > 0 &&
@@ -210,9 +243,12 @@ int main(int argc, const char **argv) {
       }
       buffer_index[buf_index] = prev_last_index;
       for (long k = buf_index - 1; k >= 0; k--) {
+         if (buffer_act[k] == SKIP) {
+            continue;
+         }
          buffer_index_delta[k] = buffer_index[k] - buffer_index[k + 1];
-         fprintf(stderr, "%ld: %ld %u %ld: %d\n", k, buffer_index[k],
-                 buffer_index_delta[k], buffer_index[k + 1], buffer_act[k]);
+         fprintf(stderr, "%ld: %u %ld: %d %d\n", k, buffer_index_delta[k],
+                 buffer_index[k], buffer_act[k], buffer_char_len[k]);
       }
       if (buf_index > 0) {
          prev_last_index = buffer_index[0];
@@ -226,11 +262,8 @@ int main(int argc, const char **argv) {
                       stdout);
                fwrite(&buffer_act[k], 1, 1, stdout);
                fwrite(&buffer_char_len[k], 1, 1, stdout);
-               // 逆順で出力
                assert(buffer_char_len[k] > 0);
-               for (long l = buffer_char_len[k] - 1; l >= 0; l--) {
-                  fwrite(&buffer_char[k][l], 1, 1, stdout);
-               }
+               fwrite(buffer_char[k], 1, buffer_char_len[k], stdout);
                break;
             case SUBSTITUTE:
             case ADD:
@@ -240,16 +273,10 @@ int main(int argc, const char **argv) {
                fwrite(&buffer_act[k], 1, 1, stdout);
                fwrite(&buffer_char_len[k], 1, 1, stdout);
                if (buffer_act[k] == SUBSTITUTE) {
-                  for (long l = buffer_char_len[k] - 1; l >= 0; l--) {
-                     fwrite(&buffer_char[k][l], 1, 1, stdout);
-                  }
+                  fwrite(buffer_char[k], 1, buffer_char_len[k], stdout);
                } else if (buffer_act[k] == ADD) {
-                  for (long l = buffer_char_len[k] - 1; l >= 0; l--) {
-                     fwrite(&buffer_char_add[k][l], 1, 1, stdout);
-                  }
+                  fwrite(buffer_char_add[k], 1, buffer_char_len[k], stdout);
                }
-               // これは使えない
-               // fwrite(buffer_char[k], 1, buffer_char_len[k], stdout);
                break;
             case DELETE:
                // tmp = buffer_index_delta[k] +1- buffer_char_len[k];
@@ -265,6 +292,8 @@ int main(int argc, const char **argv) {
                fwrite(&buffer_act[k], 1, 1, stdout);
                fwrite(&buffer_index[k], sizeof(buffer_index[k]), 1, stdout);
                break;
+            case SKIP:
+               continue;
             default:
                assert(1);
                break;

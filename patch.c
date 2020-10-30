@@ -101,7 +101,7 @@ int main(int argc, const char **argv) {
       putchar(orig[i]);
       i++;
    }
-   // fprintf(stderr, "cnt: %ld\n", cnt);
+   fprintf(stderr, "cnt: %ld\n", cnt);
    fclose(fp);
    return 0;
 }
