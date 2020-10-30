@@ -8,7 +8,7 @@
 // http://karel.tsuda.ac.jp/lec/EditDistance/
 #define i_whole (i + wind_cnt * (WINDOW_SIZE - 1))
 
-#define INTEGRATE_MAX (128 - 1)
+#define INTEGRATE_MAX (255 - 1)
 
 int argmin(int *costs, size_t n) {
    assert(n > 0);
@@ -60,7 +60,7 @@ int main(int argc, const char **argv) {
    // +1 は aaa とあったとき, |aaa, a|aa, aa|a とかするように
    // ここが 256 を上回ると buffer_index_delta を unsigned char
    // ではない型にしないといけない
-   const size_t WINDOW_SIZE = (1 << 7);
+   const size_t WINDOW_SIZE = (1 << 7) + 1;
    // ここを-1 しないと WINDOW は文字数+1 でできていることに矛盾
    const size_t WINDOW_CHARS = WINDOW_SIZE - 1;
    int *table[WINDOW_SIZE];
@@ -75,7 +75,7 @@ int main(int argc, const char **argv) {
    for (int wind_cnt = 0; wind_cnt * WINDOW_CHARS < max(orignum, newnum);
         wind_cnt++) {
       Action buffer_act[WINDOW_SIZE * 2 + 10];
-      char buffer_char[WINDOW_SIZE * 2 + 10][WINDOW_SIZE];
+      char buffer_chars[WINDOW_SIZE * 2 + 10][WINDOW_SIZE];
       char buffer_char_add[WINDOW_SIZE * 2 + 10][WINDOW_SIZE];
       unsigned char buffer_char_len[WINDOW_SIZE * 2 + 10];
       size_t buffer_index[WINDOW_SIZE * 2 + 10];
@@ -137,7 +137,7 @@ int main(int argc, const char **argv) {
                    buffer_char_len[buf_index] > INTEGRATE_MAX) {
                   buffer_act[buf_index] = SUBSTITUTE;
                   buffer_index[buf_index] = i_whole;
-                  buffer_char[buf_index][0] = newptr[j];
+                  buffer_chars[buf_index][0] = newptr[j];
                   buffer_char_add[buf_index][0] = newptr[j] - origptr[i];
                   buffer_char_len[buf_index] = 1;
                   buf_index++;
@@ -145,8 +145,8 @@ int main(int argc, const char **argv) {
                   buffer_char_add[buf_index - 1]
                                  [buffer_char_len[buf_index - 1]] =
                                      newptr[j] - origptr[i];
-                  buffer_char[buf_index - 1][buffer_char_len[buf_index - 1]++] =
-                      newptr[j];
+                  buffer_chars[buf_index - 1]
+                              [buffer_char_len[buf_index - 1]++] = newptr[j];
                }
                score--;
                break;
@@ -156,13 +156,13 @@ int main(int argc, const char **argv) {
                    buffer_index[buf_index - 1] != i_whole ||
                    buffer_char_len[buf_index] > INTEGRATE_MAX) {
                   buffer_act[buf_index] = INSERT;
-                  buffer_char[buf_index][0] = newptr[j];
+                  buffer_chars[buf_index][0] = newptr[j];
                   buffer_char_len[buf_index] = 1;
                   buffer_index[buf_index] = i_whole;
                   buf_index++;
                } else {
-                  buffer_char[buf_index - 1][buffer_char_len[buf_index - 1]++] =
-                      newptr[j];
+                  buffer_chars[buf_index - 1]
+                              [buffer_char_len[buf_index - 1]++] = newptr[j];
                }
                score--;
                break;
@@ -205,10 +205,10 @@ int main(int argc, const char **argv) {
             case ADD:
             case INSERT:
                for (int i = 0; i < buffer_char_len[k]; i++) {
-                  temp[i] = buffer_char[k][i];
+                  temp[i] = buffer_chars[k][i];
                }
                for (int i = 0; i < buffer_char_len[k]; i++) {
-                  buffer_char[k][buffer_char_len[k] - i - 1] = temp[i];
+                  buffer_chars[k][buffer_char_len[k] - i - 1] = temp[i];
                }
                break;
             default:
@@ -229,21 +229,21 @@ int main(int argc, const char **argv) {
       //               buffer_char_len[k]; size_t l; for
       //               (l=buffer_char_len[k+1]; l <
       //               buffer_index[k]-buffer_index[k+1]; l++) {
-      //                  buffer_char[k+1][l] =  orig[buffer_index[k+1]+l];
+      //                  buffer_chars[k+1][l] =  orig[buffer_index[k+1]+l];
       //               }
       //               for (; l < temp; l++) {
-      //                  buffer_char[k + 1][l] =
-      //                  buffer_char[k][l+buffer_index[k+1]-buffer_index[k]];
+      //                  buffer_chars[k + 1][l] =
+      //                  buffer_chars[k][l+buffer_index[k+1]-buffer_index[k]];
       //               }
       //               buffer_char_len[k + 1] = temp;
-      //               fputs(buffer_char[k+1], stderr);
+      //               fputs(buffer_chars[k+1], stderr);
       //            }
       //         }
       //      }
       // しばらくぶりに使うとき
       // 番兵
       if (buf_index > 0 &&
-          buffer_index[buf_index - 1] - prev_last_index > INTEGRATE_MAX) {
+          buffer_index[buf_index - 1] - prev_last_index > WINDOW_SIZE) {
          // SEEK で次に使いうる最初のindex に移動
          buffer_act[buf_index] = SEEK;
          buffer_index[buf_index] = buffer_index[buf_index - 1];
@@ -269,38 +269,33 @@ int main(int argc, const char **argv) {
       for (long k = buf_index - 1; k >= 0; k--) {
          if (buffer_act[k] == SKIP)
             continue;
-         unsigned char deltaact1 = buffer_index_delta[k];
-         if (buffer_act[k] == INSERT || buffer_act[k] == DELETE) {
-            deltaact1 |= (1 << 7);
+
+         fwrite(&buffer_act[k], sizeof(buffer_act[k]), 1, stdout);
+
+         if (buffer_act[k] == SEEK) {
+            assert(buffer_index_delta[k] == 0);
+            fwrite(&buffer_index[k], sizeof(buffer_index[k]), 1, stdout);
+            continue;
          }
-         fwrite(&deltaact1, sizeof(deltaact1), 1, stdout);
-         unsigned char deltaact2 = buffer_char_len[k];
-         switch (buffer_act[k]) {
-            case SUBSTITUTE:
-            case DELETE:
-               deltaact2 |= (1 << 7);
-               break;
-         }
-         fwrite(&deltaact2, sizeof(deltaact1), 1, stdout);
+
+         fwrite(&buffer_index_delta[k], sizeof(buffer_index_delta[k]), 1,
+                stdout);
+         fwrite(&buffer_char_len[k], sizeof(buffer_index_delta[k]), 1, stdout);
+
+         assert(buffer_char_len[k] > 0);
          switch (buffer_act[k]) {
             case INSERT:
-               assert(buffer_char_len[k] > 0);
-               fwrite(buffer_char[k], 1, buffer_char_len[k], stdout);
+               fwrite(buffer_chars[k], 1, buffer_char_len[k], stdout);
                break;
             case SUBSTITUTE:
             case ADD:
-               assert(buffer_char_len[k] > 0);
                if (buffer_act[k] == SUBSTITUTE) {
-                  fwrite(buffer_char[k], 1, buffer_char_len[k], stdout);
+                  fwrite(buffer_chars[k], 1, buffer_char_len[k], stdout);
                } else if (buffer_act[k] == ADD) {
                   fwrite(buffer_char_add[k], 1, buffer_char_len[k], stdout);
                }
                break;
             case DELETE:
-               break;
-            case SEEK:
-               assert(buffer_index_delta[k] == 0);
-               fwrite(&buffer_index[k], sizeof(buffer_index[k]), 1, stdout);
                break;
             default:
                assert(1);

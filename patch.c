@@ -28,9 +28,9 @@ int main(int argc, const char **argv) {
    if (fp == NULL) {
       exit(-1);
    }
-   size_t cnt_num = 0;
-   size_t prev_cnt_num = 0;
-   unsigned char cnt_num_delta;
+   size_t index = 0;
+   size_t prev_index = 0;
+   unsigned char index_delta;
    char new_num;
    size_t cnt;
    Action action;
@@ -38,45 +38,45 @@ int main(int argc, const char **argv) {
    size_t i = 0;
    unsigned char len;
    for (cnt = 0; !feof(fp); cnt++) {
-      // if (fscanf(fp, "%lx,%d", &cnt_num, &action) < 0) {
-      prev_cnt_num = cnt_num;
-      if (fread(&cnt_num_delta, sizeof(cnt_num_delta), 1, fp) == 0) {
+      prev_index = index;
+
+      if (fread(&action, sizeof(Action), 1, fp) == 0)
          break;
+      if ((Action)action == SEEK) {
+         fread(&index, sizeof(index), 1, fp);
+         continue;
       }
-      unsigned int act1 = cnt_num_delta & (1 << 7);
-      cnt_num_delta &= ~(1 << 7);
-      cnt_num = cnt_num_delta + prev_cnt_num;
-      // fprintf(stderr, "%ld %u %ld\n", prev_cnt_num, cnt_num_delta, cnt_num);
-      // assert(fread(&action, sizeof(Action), 1, fp) > 0);
-      /*
+      assert(fread(&index_delta, sizeof(index_delta), 1, fp) > 0);
+      index = index_delta + prev_index;
+      //      unsigned int act1 = index_delta & (1 << 7);
+      //      index_delta &= ~(1 << 7);
+      // fprintf(stderr, "%ld %u %ld\n", prev_index, index_delta, index);
       if (ferror(fp) != 0) {
          fputs("Error!\n", stderr);
          break;
       }
-      */
       // TODO 想定外の値に対してエラー
-      while (i < cnt_num && i < orignum) {
+      while (i < index && i < orignum) {
          putchar(orig[i]);
          i++;
       }
       assert(fread(&len, 1, 1, fp) > 0);
-      unsigned int act2 = len & (1 << 7);
-      len &= ~(1 << 7);
-      if (act1 == 0) {
-         if (act2 == 0) {
-            action = SEEK;
-         } else {
-            action = SUBSTITUTE;
-         }
-      } else {
-         if (act2 == 0) {
-            action = INSERT;
-         } else {
-            action = DELETE;
-         }
-      }
-      fprintf(stderr, "action: %d, cnt_num: %ld, len: %u\n", action, cnt_num,
-              len);
+
+      //      unsigned int act2 = len & (1 << 7);
+      //      len &= ~(1 << 7);
+      //      if (act1 == 0) {
+      //         if (act2 == 0) {
+      //            action = SEEK;
+      //         } else {
+      //            action = SUBSTITUTE;
+      //         }
+      //      } else {
+      //         if (act2 == 0) {
+      //            action = INSERT;
+      //         } else {
+      //            action = DELETE;
+      //         }
+      //      }
       switch ((Action)action) {
          case SUBSTITUTE:
          case ADD:
@@ -96,18 +96,9 @@ int main(int argc, const char **argv) {
                assert(fread(&new_num, 1, 1, fp) > 0);
                putchar(new_num);
             }
-            /*
-            while (fscanf(fp, ",%hhx", &new_num) > 0) {
-               putchar(new_num);
-            }
-            fscanf(fp, "\n");
-            */
             break;
          case DELETE:
             i += len;
-            break;
-         case SEEK:
-            fread(&cnt_num, sizeof(cnt_num), 1, fp);
             break;
          default:
             fprintf(stderr, "Error: %d on Commond No. %ld\n", action, cnt);
