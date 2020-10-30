@@ -45,6 +45,7 @@ int main(int argc, const char **argv) {
          break;
       }
       cnt_num = cnt_num_delta + prev_cnt_num;
+      fprintf(stderr, "%ld %u %ld\n", prev_cnt_num, cnt_num_delta, cnt_num);
       assert(fread(&action, sizeof(Action), 1, fp) > 0);
       if (ferror(fp) != 0) {
          fputs("Error!\n", stderr);
@@ -87,6 +88,9 @@ int main(int argc, const char **argv) {
          case DELETE:
             assert(fread(&len, 1, 1, fp) > 0);
             i += len;
+            break;
+         case SEEK:
+            fread(&cnt_num, sizeof(cnt_num), 1, fp);
             break;
          default:
             fprintf(stderr, "Error: %d on Commond No. %ld\n", action, cnt);

@@ -10,6 +10,7 @@
 #define INSERT 2
 #define DELETE 3
 #define ADD 4
+#define SEEK 5
 typedef char Action;
 
 #define max(x, y) ((x) < (y) ? (y) : (x))

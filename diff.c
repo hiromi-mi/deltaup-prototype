@@ -186,20 +186,6 @@ int main(int argc, const char **argv) {
       }
       assert(score == 0);
 
-      // この Window 間何もコマンドがなかった
-      // 長さ0 のDELETE を入れて0文字index をずらす
-      if (buf_index == 0) {
-         buffer_act[buf_index] = DELETE;
-         buffer_index[buf_index] = i_whole;
-         buffer_char_len[buf_index] = 0;
-         buf_index++;
-
-         // これは不要
-         buffer_char[buf_index][0] = '\0';
-         buffer_char_add[buf_index][0] = '\0';
-      }
-      // 番兵
-      buffer_index[buf_index] = prev_last_index;
       for (long k = buf_index - 1; k >= 0; k--) {
          switch (buffer_act[k]) {
             case SUBSTITUTE:
@@ -210,7 +196,23 @@ int main(int argc, const char **argv) {
             default:
                break;
          }
+      }
+      // しばらくぶりに使うとき
+      // 番兵
+      if (buf_index > 0 &&
+          buffer_index[buf_index - 1] - prev_last_index > 255) {
+         // SEEK で次に使いうる最初のindex に移動
+         buffer_act[buf_index] = SEEK;
+         buffer_index[buf_index] = buffer_index[buf_index - 1];
+         buffer_index_delta[buf_index] = 0;
+         buf_index++;
+         prev_last_index = buffer_index[buf_index - 1];
+      }
+      buffer_index[buf_index] = prev_last_index;
+      for (long k = buf_index - 1; k >= 0; k--) {
          buffer_index_delta[k] = buffer_index[k] - buffer_index[k + 1];
+         fprintf(stderr, "%ld: %ld %u %ld: %d\n", k, buffer_index[k],
+                 buffer_index_delta[k], buffer_index[k + 1], buffer_act[k]);
       }
       if (buf_index > 0) {
          prev_last_index = buffer_index[0];
@@ -255,6 +257,13 @@ int main(int argc, const char **argv) {
                       stdout);
                fwrite(&buffer_act[k], 1, 1, stdout);
                fwrite(&buffer_char_len[k], 1, 1, stdout);
+               break;
+            case SEEK:
+               assert(buffer_index_delta[k] == 0);
+               fwrite(&buffer_index_delta[k], sizeof(buffer_index_delta[k]), 1,
+                      stdout);
+               fwrite(&buffer_act[k], 1, 1, stdout);
+               fwrite(&buffer_index[k], sizeof(buffer_index[k]), 1, stdout);
                break;
             default:
                assert(1);
