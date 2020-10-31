@@ -76,7 +76,7 @@ int main(int argc, const char **argv) {
         wind_cnt++) {
       Action buffer_act[WINDOW_SIZE * 2 + 10];
       char buffer_chars[WINDOW_SIZE * 2 + 10][WINDOW_SIZE];
-      char buffer_char_add[WINDOW_SIZE * 2 + 10][WINDOW_SIZE];
+      char buffer_chars_add[WINDOW_SIZE * 2 + 10][WINDOW_SIZE];
       unsigned char buffer_char_len[WINDOW_SIZE * 2 + 10];
       size_t buffer_index[WINDOW_SIZE * 2 + 10];
       unsigned char buffer_index_delta[WINDOW_SIZE * 2 + 10];
@@ -101,11 +101,16 @@ int main(int argc, const char **argv) {
       for (size_t i = 1; i < i_max; i++) {
          for (size_t j = 1; j < j_max; j++) {
             int costs[4] = {INF, INF, INF, INF};
-            costs[DELETE] = table[i - 1][j] + 1;         // DELETE
-            costs[INSERT] = table[i][j - 1] + 1;         // INSERT
-            costs[SUBSTITUTE] = table[i - 1][j - 1] + 1; // SUBSTITUTE
+            costs[DELETE] =
+                table[i - 1][j] + 1 + (act[i - 1][j] != DELETE) * 2; // DELETE
+            costs[INSERT] =
+                table[i][j - 1] + 1 + (act[i][j - 1] != INSERT) * 2; // INSERT
+            costs[SUBSTITUTE] =
+                table[i - 1][j - 1] +
+                (act[i - 1][j - 1] != SUBSTITUTE) * 2; // SUBSTITUTE
             if (origptr[i - 1] == newptr[j - 1]) {
-               costs[MATCH] = table[i - 1][j - 1]; // MATCH
+               costs[MATCH] = table[i - 1][j - 1] +
+                              (act[i - 1][j - 1] != MATCH) * 2; // MATCH
             }
 
             int index = argmin(costs, 4);
@@ -138,13 +143,13 @@ int main(int argc, const char **argv) {
                   buffer_act[buf_index] = SUBSTITUTE;
                   buffer_index[buf_index] = i_whole;
                   buffer_chars[buf_index][0] = newptr[j];
-                  buffer_char_add[buf_index][0] = newptr[j] - origptr[i];
+                  buffer_chars_add[buf_index][0] = newptr[j] - origptr[i];
                   buffer_char_len[buf_index] = 1;
                   buf_index++;
                } else {
-                  buffer_char_add[buf_index - 1]
-                                 [buffer_char_len[buf_index - 1]] =
-                                     newptr[j] - origptr[i];
+                  buffer_chars_add[buf_index - 1]
+                                  [buffer_char_len[buf_index - 1]] =
+                                      newptr[j] - origptr[i];
                   buffer_chars[buf_index - 1]
                               [buffer_char_len[buf_index - 1]++] = newptr[j];
                }
@@ -186,8 +191,11 @@ int main(int argc, const char **argv) {
                exit(-1);
          }
       }
-      assert(score == 0);
 
+      // due to movable points
+      // assert(score == 0);
+
+      // reverse  buffer_index and buffer_chars
       char temp[WINDOW_SIZE + 1];
       for (long k = buf_index - 1; k >= 0; k--) {
          switch (buffer_act[k]) {
@@ -202,13 +210,20 @@ int main(int argc, const char **argv) {
 
          switch (buffer_act[k]) {
             case SUBSTITUTE:
-            case ADD:
             case INSERT:
                for (int i = 0; i < buffer_char_len[k]; i++) {
                   temp[i] = buffer_chars[k][i];
                }
                for (int i = 0; i < buffer_char_len[k]; i++) {
                   buffer_chars[k][buffer_char_len[k] - i - 1] = temp[i];
+               }
+               break;
+            case ADD:
+               for (int i = 0; i < buffer_char_len[k]; i++) {
+                  temp[i] = buffer_chars_add[k][i];
+               }
+               for (int i = 0; i < buffer_char_len[k]; i++) {
+                  buffer_chars_add[k][buffer_char_len[k] - i - 1] = temp[i];
                }
                break;
             default:
@@ -251,15 +266,14 @@ int main(int argc, const char **argv) {
          buf_index++;
          prev_last_index = buffer_index[buf_index - 1];
       }
+
+      // creating delta
       buffer_index[buf_index] = prev_last_index;
       for (long k = buf_index - 1; k >= 0; k--) {
          if (buffer_act[k] == SKIP) {
             continue;
          }
          buffer_index_delta[k] = buffer_index[k] - buffer_index[k + 1];
-         fprintf(stderr, "%ld: delta: %u index: %ld, act: %u len: %u\n", k,
-                 buffer_index_delta[k], buffer_index[k], buffer_act[k],
-                 buffer_char_len[k]);
       }
       if (buf_index > 0) {
          prev_last_index = buffer_index[0];
@@ -285,15 +299,11 @@ int main(int argc, const char **argv) {
          assert(buffer_char_len[k] > 0);
          switch (buffer_act[k]) {
             case INSERT:
+            case SUBSTITUTE:
                fwrite(buffer_chars[k], 1, buffer_char_len[k], stdout);
                break;
-            case SUBSTITUTE:
             case ADD:
-               if (buffer_act[k] == SUBSTITUTE) {
-                  fwrite(buffer_chars[k], 1, buffer_char_len[k], stdout);
-               } else if (buffer_act[k] == ADD) {
-                  fwrite(buffer_char_add[k], 1, buffer_char_len[k], stdout);
-               }
+               fwrite(buffer_chars_add[k], 1, buffer_char_len[k], stdout);
                break;
             case DELETE:
                break;
