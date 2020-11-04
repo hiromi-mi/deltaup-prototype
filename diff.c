@@ -75,7 +75,7 @@ int main(int argc, const char **argv) {
             costs[INSERT] =
                 table[i][j - 1] + 1 + (act[i][j - 1] != INSERT) * 2; // INSERT
             costs[SUBSTITUTE] =
-                table[i - 1][j - 1] +
+                table[i - 1][j - 1] + 3 +
                 (act[i - 1][j - 1] != SUBSTITUTE) * 2; // SUBSTITUTE
             if (origptr[i - 1] == newptr[j - 1]) {
                costs[MATCH] = table[i - 1][j - 1] +

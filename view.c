@@ -64,7 +64,7 @@ int main(int argc, const char **argv) {
             putchar('\n');
             break;
          case DELETE:
-            printf("DELETE, %ld, %u: ", index, len);
+            printf("DELETE, %ld, %u: \n", index, len);
             break;
          default:
             fprintf(stderr, "Error: %d on Commond No. %ld\n", action, cnt);
