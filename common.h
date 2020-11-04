@@ -1,3 +1,4 @@
+#include <stddef.h>
 /*
 // こちらよりも下のように INSERT を積極的に利用したほうが小さくなる
 #define SUBSTITUTE 0
@@ -18,3 +19,6 @@ typedef char Action;
 #define min(x, y) ((y) < (x) ? (y) : (x))
 
 #define INF 1000000
+
+int argmin(int *costs, size_t n);
+char *read_file(const char *filename, size_t *len);

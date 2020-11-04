@@ -1,6 +1,5 @@
 #include "common.h"
 #include <assert.h>
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,41 +8,6 @@
 #define i_whole (i + wind_cnt * (WINDOW_SIZE - 1))
 
 #define INTEGRATE_MAX (255 - 1)
-
-int argmin(int *costs, size_t n) {
-   assert(n > 0);
-   int minindex = 0;
-   int minval = costs[0];
-   for (size_t index = 1; index < n; index++) {
-      if (minval > costs[index]) {
-         minindex = index;
-         minval = costs[index];
-      }
-   }
-   return minindex;
-}
-
-char *read_file(const char *filename, size_t *len) {
-   const int MAX_LEN = 1 << 22;
-   char *file = calloc(MAX_LEN, 1);
-   FILE *fp;
-
-   if (file == NULL) {
-      perror("calloc");
-      exit(-1);
-   }
-
-   fp = fopen(filename, "r");
-   if (fp == NULL) {
-      perror("fopen");
-      exit(-1);
-   }
-   *len = fread(file, 1, MAX_LEN - 1, fp) + 1;
-   // 「0文字目」が存在しないため
-   fclose(fp);
-
-   return file;
-}
 
 int main(int argc, const char **argv) {
    if (argc <= 2) {
@@ -54,6 +18,11 @@ int main(int argc, const char **argv) {
    size_t orignum, newnum;
    char *orig = read_file(argv[1], &orignum);
    char *new = read_file(argv[2], &newnum);
+
+   // 「0文字目」が存在しないため
+   orignum++;
+   newnum++;
+
    char *origptr = orig;
    char *newptr = new;
 

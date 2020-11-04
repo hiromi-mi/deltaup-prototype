@@ -1,8 +1,9 @@
 CFLAGS=	-Wall -Wextra -g
-all:	diff patch
+all:	diff patch view
 
-diff:	common.h
-patch:	common.h
+diff:	common.h common.o
+patch:	common.h common.o
+view:	common.h common.o
 
 test:
 	$(MAKE) -C test
