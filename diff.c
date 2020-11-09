@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <divsufsort.h>
+
 // http://karel.tsuda.ac.jp/lec/EditDistance/
 #define i_whole (i + wind_cnt * (WINDOW_SIZE - 1))
 
@@ -22,6 +24,9 @@ int main(int argc, const char **argv) {
    // 「0文字目」が存在しないため
    orignum++;
    newnum++;
+
+   int *SA = malloc(sizeof(saidx_t) * (1LL << 23));
+   divsufsort((unsigned char *)orig, SA, orignum);
 
    char *origptr = orig;
    char *newptr = new;
@@ -288,5 +293,6 @@ int main(int argc, const char **argv) {
 
    free(orig);
    free(new);
+   free(SA);
    return 0;
 }
