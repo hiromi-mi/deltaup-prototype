@@ -11,6 +11,36 @@
 
 #define INTEGRATE_MAX (255 - 1)
 
+int matchlen(const char *orig, size_t origlen, const char *new, size_t newlen) {
+   size_t i = 0;
+   for (; i < origlen && i < newlen; i++) {
+      if (orig[i] != new[i])
+         break;
+   }
+   return i;
+}
+
+long long search(const int *SA, const char *orig, size_t origlen,
+                 const char *new, size_t newlen, int start, int end, int *pos) {
+   if (end - start < 2) {
+      int s = matchlen(orig + SA[start], origlen - SA[start], new, newlen);
+      int e = matchlen(orig + SA[end], origlen - SA[end], new, newlen);
+      if (s > e) {
+         *pos = SA[start];
+         return s;
+      } else {
+         *pos = SA[end];
+         return e;
+      }
+   }
+   int x = start + (end - start) / 2;
+   if (memcmp(orig + SA[x], new, min(origlen - SA[x], newlen)) < 0) {
+      return search(SA, orig, origlen, new, newlen, x, end, pos);
+   } else {
+      return search(SA, orig, origlen, new, newlen, start, x, pos);
+   }
+}
+
 int main(int argc, const char **argv) {
    if (argc <= 2) {
       fprintf(stderr, "Usage: oldfile newfile\n");
@@ -21,13 +51,14 @@ int main(int argc, const char **argv) {
    char *orig = read_file(argv[1], &orignum);
    char *new = read_file(argv[2], &newnum);
 
+   int *SA = malloc(sizeof(saidx_t) * (1LL << 23));
+   divsufsort((unsigned char *)orig, SA, orignum);
+   int pos;
+   search(SA, orig, orignum, new, newnum, 0, orignum, &pos);
+
    // 「0文字目」が存在しないため
    orignum++;
    newnum++;
-
-   int *SA = malloc(sizeof(saidx_t) * (1LL << 23));
-   divsufsort((unsigned char *)orig, SA, orignum);
-
    char *origptr = orig;
    char *newptr = new;
 
