@@ -26,7 +26,7 @@ int main(int argc, const char **argv) {
    size_t cnt;
    Action action;
    size_t i = 0;
-   unsigned char len;
+   unsigned long len;
    for (cnt = 0; !feof(fp); cnt++) {
       prev_index = index;
 
@@ -34,6 +34,10 @@ int main(int argc, const char **argv) {
          break;
       if ((Action)action == SEEK) {
          fread(&index, sizeof(index), 1, fp);
+         while (i < index && i < orignum) {
+            putchar(orig[i]);
+            i++;
+         }
          continue;
       }
       assert(fread(&index_delta, sizeof(index_delta), 1, fp) > 0);
@@ -46,11 +50,13 @@ int main(int argc, const char **argv) {
          break;
       }
 
+      /*
       while (i < index && i < orignum) {
          putchar(orig[i]);
          i++;
       }
-      assert(fread(&len, 1, 1, fp) > 0);
+      */
+      assert(fread(&len, 4, 1, fp) > 0);
 
       //      unsigned int act2 = len & (1 << 7);
       //      len &= ~(1 << 7);
@@ -70,8 +76,8 @@ int main(int argc, const char **argv) {
       switch ((Action)action) {
          case SUBSTITUTE:
          case ADD:
-            for (unsigned char j = 0; j < len; j++) {
-               assert(fread(&new_num, 1, 1, fp) > 0);
+            for (unsigned long j = 0; j < len; j++) {
+               assert(fread(&new_num, 1, 1, fp) >= 0);
                if ((Action)action == SUBSTITUTE) {
                   putchar(new_num);
                } else if ((Action)action == ADD) {
@@ -82,8 +88,8 @@ int main(int argc, const char **argv) {
             // fscanf(fp, "\n");
             break;
          case INSERT:
-            for (unsigned char j = 0; j < len; j++) {
-               assert(fread(&new_num, 1, 1, fp) > 0);
+            for (unsigned long j = 0; j < len; j++) {
+               assert(fread(&new_num, 1, 1, fp) >= 0);
                putchar(new_num);
             }
             break;

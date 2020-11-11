@@ -12,6 +12,7 @@
 #define DELETE 3
 #define ADD 4
 #define SEEK 5
+#define NEWSEEK 5
 #define SKIP 9
 typedef char Action;
 

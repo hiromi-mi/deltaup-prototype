@@ -19,7 +19,7 @@ int main(int argc, const char **argv) {
    size_t index = 0;
    size_t prev_index = 0;
    char new_num;
-   unsigned char len;
+   unsigned int len;
    unsigned char index_delta;
    Action action;
 
@@ -35,12 +35,12 @@ int main(int argc, const char **argv) {
       }
       assert(fread(&index_delta, sizeof(index_delta), 1, fp) > 0);
       index = index_delta + prev_index;
-      assert(fread(&len, 1, 1, fp) > 0);
+      assert(fread(&len, 4, 1, fp) > 0);
 
       switch ((Action)action) {
          case SUBSTITUTE:
             printf("SUBSTITUTE, %ld, %u: ", index, len);
-            for (unsigned char j = 0; j < len; j++) {
+            for (unsigned long j = 0; j < len; j++) {
                assert(fread(&new_num, 1, 1, fp) > 0);
                printf("%hhu ", new_num);
             }
@@ -48,7 +48,7 @@ int main(int argc, const char **argv) {
             break;
          case ADD:
             printf("ADD, %ld, %u: ", index, len);
-            for (unsigned char j = 0; j < len; j++) {
+            for (unsigned long j = 0; j < len; j++) {
                assert(fread(&new_num, 1, 1, fp) > 0);
                // printf("%d ", new_num + orig[i] - '0');
                printf("%d ", new_num);
@@ -57,7 +57,7 @@ int main(int argc, const char **argv) {
             break;
          case INSERT:
             printf("INSERT, %ld, %u: ", index, len);
-            for (unsigned char j = 0; j < len; j++) {
+            for (unsigned long j = 0; j < len; j++) {
                assert(fread(&new_num, 1, 1, fp) > 0);
                printf("%hhu ", new_num);
             }
