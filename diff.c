@@ -61,12 +61,11 @@ int main(int argc, const char **argv) {
    divsufsort((unsigned char *)orig, SA, orignum);
    int pos;
    int len = 0, scan = 0, lastscan = 0, lastpos = 0, lastoffset = 0;
-   int oldscore;
    int scsc;
    int s = 0, Sf = 0, lenf = 0;
    int lenb = 0, Sb = 0;
    while (scan < newnum) {
-      oldscore = 0;
+      int oldscore = 0;
       // scan sucessor
       scsc = scan += len;
       for (; scan < newnum; scan++) {

@@ -26,7 +26,7 @@ int main(int argc, const char **argv) {
    size_t cnt;
    Action action;
    size_t i = 0;
-   unsigned long len;
+   unsigned int len;
    for (cnt = 0; !feof(fp); cnt++) {
       prev_index = index;
 
@@ -101,10 +101,11 @@ int main(int argc, const char **argv) {
             exit(-1);
       }
    }
+   /*
    while (i < orignum) {
       putchar(orig[i]);
       i++;
-   }
+   }*/
    // fprintf(stderr, "cnt: %ld\n", cnt);
    fclose(fp);
    return 0;
