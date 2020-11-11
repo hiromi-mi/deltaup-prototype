@@ -11,6 +11,8 @@
 
 #define INTEGRATE_MAX (255 - 1)
 
+// from bsdiff
+// License: LICENSE.bsdiff
 int matchlen(const char *orig, size_t origlen, const char *new, size_t newlen) {
    size_t i = 0;
    for (; i < origlen && i < newlen; i++) {
@@ -20,6 +22,8 @@ int matchlen(const char *orig, size_t origlen, const char *new, size_t newlen) {
    return i;
 }
 
+// from bsdiff
+// License: LICENSE.bsdiff
 long long search(const int *SA, const char *orig, size_t origlen,
                  const char *new, size_t newlen, int start, int end, int *pos) {
    if (end - start < 2) {
@@ -41,6 +45,8 @@ long long search(const int *SA, const char *orig, size_t origlen,
    }
 }
 
+// algorithm from bsdiff
+// License: LICENSE.bsdiff
 int main(int argc, const char **argv) {
    if (argc <= 2) {
       fprintf(stderr, "Usage: oldfile newfile\n");
@@ -54,7 +60,101 @@ int main(int argc, const char **argv) {
    int *SA = malloc(sizeof(saidx_t) * (1LL << 23));
    divsufsort((unsigned char *)orig, SA, orignum);
    int pos;
-   search(SA, orig, orignum, new, newnum, 0, orignum, &pos);
+   int len = 0, scan = 0, lastscan = 0, lastpos = 0, lastoffset = 0;
+   int oldscore;
+   int scsc;
+   while (scan < newnum) {
+      oldscore = 0;
+      // scan sucessor
+      scsc = scan += len;
+      for (; scan < newnum; scan++) {
+         len = search(SA, orig, orignum, new, newnum, 0, orignum, &pos);
+
+         // 今回一致範囲 [scan ... scan+len]
+         // と前回一致範囲の続きの一致バイト数を徐々に増やしていくl
+         // 今回一致範囲から
+         for (; scsc < scan + len; scsc++) {
+            if ((scsc + lastoffset < orignum) &&
+                (orig[scsc + lastoffset] == new[scsc])) {
+               // 一致して延長できていたら
+               oldscore++;
+            }
+         }
+
+         // 前回一致したものを新旧完全に一致しながら延長できている
+         if ((len == oldscore) && (len != 0)) {
+            break;
+         }
+
+         // 8文字以上の不一致
+         if (len > oldscore + 8) {
+            break;
+         }
+
+         // scan を進めていく. 今回一致部分を先に進めていく
+         if ((scan + lastoffset < orignum) &&
+             (orig[scan + lastoffset] == new[scan])) {
+            oldscore--;
+         }
+      }
+
+      int s = 0, Sf = 0, lenf = 0;
+      int lenb = 0, Sb = 0;
+      if ((len != oldscore) || (scan == newnum)) {
+         // 前回の一致点から前方探索
+         // max. (一致した文字数*2 - 全体の文字数) を計算
+         for (int i = 0; (lastscan + i < scan) && (lastpos + i < orignum);) {
+            if (orig[lastpos + i] == new[lastscan + i]) {
+               s++;
+            }
+            i++;
+            if (s * 2 - i > Sf * 2 - lenf) {
+               Sf = s;
+               lenf = i;
+            }
+         }
+         // 今回の一致点からのbackward
+         // max. (一致した文字数*2 - 全体の文字数) を計算
+         if (scan < newnum) {
+            s = 0;
+            Sb = 0;
+            for (int i = 1; (scan >= lastscan + i) && (pos >= i); i++) {
+               if (orig[pos - i] == new[scan - i]) {
+                  s++;
+               }
+               if (s * 2 - i > Sb * 2 - lenb) {
+                  Sb = s;
+                  lenb = i;
+               }
+            }
+         }
+      }
+
+      if (lastscan + lenf > scan - lenb) {
+         int overlap = (lastscan + lenf) - (scan - lenb);
+         int s = 0;
+         int lens = 0, Ss = 0;
+         for (int i = 0; i < overlap; i++) {
+            if (new[lastscan + lenf - overlap + i] ==
+                orig[lastpos + lenf - overlap + i]) {
+               s++;
+            }
+            if (new[scan - lenb + i] == orig[pos - lenb + i]) {
+               s--;
+            }
+            if (s > Ss) {
+               Ss = s;
+               lens = i + 1;
+            }
+         }
+
+         lenf += lens - overlap;
+         lenb -= lens;
+      }
+      lastscan = scan - lenb;
+      lastpos = pos - lenb;
+      lastoffset = pos - scan;
+   }
 
    // 「0文字目」が存在しないため
    orignum++;
