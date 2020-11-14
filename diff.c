@@ -105,7 +105,8 @@ int main(int argc, const char **argv) {
          Sf = 0;
          // 前回の一致点から前方探索
          // max. (一致した文字数*2 - 全体の文字数) を計算
-         for (int i = 0; (lastscan + i < scan) && (lastpos + i < orignum);) {
+         for (int i = 0; (lastscan + i < scan) && (lastpos + i < orignum) &&
+                         (lastscan + i < newnum);) {
             if (orig[lastpos + i] == new[lastscan + i]) {
                s++;
             }
@@ -130,64 +131,70 @@ int main(int argc, const char **argv) {
                   lenb = i;
                }
             }
+
+            if (lastscan + lenf > scan - lenb) {
+               int overlap = (lastscan + lenf) - (scan - lenb);
+               int s = 0;
+               int lens = 0, Ss = 0;
+               for (int i = 0; i < overlap; i++) {
+                  if (new[lastscan + lenf - overlap + i] ==
+                      orig[lastpos + lenf - overlap + i]) {
+                     s++;
+                  }
+                  if (new[scan - lenb + i] == orig[pos - lenb + i]) {
+                     s--;
+                  }
+                  if (s > Ss) {
+                     Ss = s;
+                     lens = i + 1;
+                  }
+               }
+
+               lenf += lens - overlap;
+               lenb -= lens;
+            }
          }
-      }
-
-      if (lastscan + lenf > scan - lenb) {
-         int overlap = (lastscan + lenf) - (scan - lenb);
-         int s = 0;
-         int lens = 0, Ss = 0;
-         for (int i = 0; i < overlap; i++) {
-            if (new[lastscan + lenf - overlap + i] ==
-                orig[lastpos + lenf - overlap + i]) {
-               s++;
-            }
-            if (new[scan - lenb + i] == orig[pos - lenb + i]) {
-               s--;
-            }
-            if (s > Ss) {
-               Ss = s;
-               lens = i + 1;
-            }
-         }
-
-         lenf += lens - overlap;
-         lenb -= lens;
-      }
-      Action act = SEEK;
-      fwrite(&act, 1, 1, stdout);
-      // size_t len = (pos - lenb) - (lastpos + lenf);
-      size_t len = lastscan;
-      fwrite(&len, sizeof(len), 1, stdout);
-      /*
-      Action act = NEWSEEK;
-      fwrite(&act, 1, 1, stdout);
-      size_t len = lastpos;
-      fwrite(&len, sizeof(len), 1, stdout);
-      */
-
-      int tmp = 0;
-      if (lenf > 0) {
-         act = SUBSTITUTE;
+         Action act = SEEK;
          fwrite(&act, 1, 1, stdout);
-         fwrite(&tmp, 1, 1, stdout);
-         fwrite(&lenf, 4, 1, stdout);
-         fwrite(&new[lastscan], 1, lenf, stdout);
-      }
+         // size_t len = (pos - lenb) - (lastpos + lenf);
+         size_t len = lastscan;
+         fwrite(&len, sizeof(len), 1, stdout);
+         fwrite(&lastpos, sizeof(lastpos), 1, stdout);
+         /*
+         Action act = NEWSEEK;
+         fwrite(&act, 1, 1, stdout);
+         size_t len = lastpos;
+         fwrite(&len, sizeof(len), 1, stdout);
+         */
 
-      tmp = (scan - lenb) - (lastscan + lenf);
-      if (tmp > 0) {
-         act = INSERT;
-         fwrite(&act, sizeof(act), 1, stdout);
-         fwrite(&lenf, 1, 1, stdout);
-         fwrite(&tmp, 4, 1, stdout);
-         fwrite(&new[lastscan + lenf], 1, (scan - lenb) - (lastscan + lenf),
-                stdout);
-      }
+         int tmp = 0;
+         if (lenf > 0) {
+            act = ADD;
+            fwrite(&act, 1, 1, stdout);
+            fwrite(&tmp, 1, 1, stdout);
+            fwrite(&lenf, 4, 1, stdout);
+            for (int j = 0; j < lenf; j++) {
+               char tmpchar = new[lastscan + j] - orig[lastpos + j];
+               fwrite(&tmpchar, 1, 1, stdout);
+            }
+         }
 
-      lastscan = scan - lenb;
-      lastpos = pos - lenb;
-      lastoffset = pos - scan;
+         tmp = (scan - lenb) - (lastscan + lenf);
+         // fprintf(stderr, "%d, %d, %d, %d, %d\n", scan, newnum, tmp, lenf,
+         // lastscan);
+         // TODO scan <= newnum がなぜ必要？
+         if (tmp > 0 && scan <= newnum) {
+            act = INSERT;
+            fwrite(&act, sizeof(act), 1, stdout);
+            fwrite(&lenf, 1, 1, stdout);
+            fwrite(&tmp, 4, 1, stdout);
+            fwrite(&new[lastscan + lenf], 1, tmp, stdout);
+         }
+
+         lastscan = scan - lenb;
+         lastpos = pos - lenb;
+         lastoffset = pos - scan;
+      }
    }
 
    //   // 「0文字目」が存在しないため

@@ -51,7 +51,7 @@ int main(int argc, const char **argv) {
             for (unsigned long j = 0; j < len; j++) {
                assert(fread(&new_num, 1, 1, fp) > 0);
                // printf("%d ", new_num + orig[i] - '0');
-               printf("%d ", new_num);
+               printf("%hhu ", new_num);
             }
             putchar('\n');
             break;

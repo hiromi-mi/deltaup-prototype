@@ -34,10 +34,12 @@ int main(int argc, const char **argv) {
          break;
       if ((Action)action == SEEK) {
          fread(&index, sizeof(index), 1, fp);
+         fread(&i, 4, 1, fp);
+         /*
          while (i < index && i < orignum) {
             putchar(orig[i]);
             i++;
-         }
+         }*/
          continue;
       }
       assert(fread(&index_delta, sizeof(index_delta), 1, fp) > 0);
