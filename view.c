@@ -30,7 +30,9 @@ int main(int argc, const char **argv) {
          break;
       if ((Action)action == SEEK) {
          fread(&index, sizeof(index), 1, fp);
-         printf("SEEK, %ld\n", index);
+         int tmp;
+         fread(&tmp, 4, 1, fp);
+         printf("SEEK, %ld, %d\n", index, tmp);
          continue;
       }
       assert(fread(&index_delta, sizeof(index_delta), 1, fp) > 0);

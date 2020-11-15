@@ -182,8 +182,11 @@ int main(int argc, const char **argv) {
          tmp = (scan - lenb) - (lastscan + lenf);
          // fprintf(stderr, "%d, %d, %d, %d, %d\n", scan, newnum, tmp, lenf,
          // lastscan);
-         // TODO scan <= newnum がなぜ必要？
-         if (tmp > 0 && scan <= newnum) {
+         if (tmp > 0) {
+            // newnum を超過しているときに newnumに合わせる
+            if (lastscan + lenf + tmp > newnum) {
+               tmp = newnum - (lastscan + lenf);
+            }
             act = INSERT;
             fwrite(&act, sizeof(act), 1, stdout);
             fwrite(&lenf, 1, 1, stdout);
