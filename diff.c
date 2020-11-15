@@ -131,28 +131,28 @@ int main(int argc, const char **argv) {
                   lenb = i;
                }
             }
+         }
 
-            if (lastscan + lenf > scan - lenb) {
-               int overlap = (lastscan + lenf) - (scan - lenb);
-               int s = 0;
-               int lens = 0, Ss = 0;
-               for (int i = 0; i < overlap; i++) {
-                  if (new[lastscan + lenf - overlap + i] ==
-                      orig[lastpos + lenf - overlap + i]) {
-                     s++;
-                  }
-                  if (new[scan - lenb + i] == orig[pos - lenb + i]) {
-                     s--;
-                  }
-                  if (s > Ss) {
-                     Ss = s;
-                     lens = i + 1;
-                  }
+         if (lastscan + lenf > scan - lenb) {
+            int overlap = (lastscan + lenf) - (scan - lenb);
+            int s = 0;
+            int lens = 0, Ss = 0;
+            for (int i = 0; i < overlap; i++) {
+               if (new[lastscan + lenf - overlap + i] ==
+                   orig[lastpos + lenf - overlap + i]) {
+                  s++;
                }
-
-               lenf += lens - overlap;
-               lenb -= lens;
+               if (new[scan - lenb + i] == orig[pos - lenb + i]) {
+                  s--;
+               }
+               if (s > Ss) {
+                  Ss = s;
+                  lens = i + 1;
+               }
             }
+
+            lenf += lens - overlap;
+            lenb -= lens;
          }
          Action act = SEEK;
          fwrite(&act, 1, 1, stdout);
