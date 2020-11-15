@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include <divsufsort.h>
+#include <divsufsort64.h>
 
 // http://karel.tsuda.ac.jp/lec/EditDistance/
 #define i_whole (i + wind_cnt * (WINDOW_SIZE - 1))
@@ -24,7 +25,7 @@ int matchlen(const char *orig, size_t origlen, const char *new, size_t newlen) {
 
 // from bsdiff
 // License: LICENSE.bsdiff
-long long search(const int *SA, const char *orig, size_t origlen,
+long long search(const long *SA, const char *orig, size_t origlen,
                  const char *new, size_t newlen, int start, int end, int *pos) {
    if (end - start < 2) {
       int s = matchlen(orig + SA[start], origlen - SA[start], new, newlen);
@@ -57,8 +58,8 @@ int main(int argc, const char **argv) {
    char *orig = read_file(argv[1], &orignum);
    char *new = read_file(argv[2], &newnum);
 
-   int *SA = malloc(sizeof(saidx_t) * (1LL << 23));
-   divsufsort((unsigned char *)orig, SA, orignum);
+   long *SA = malloc(sizeof(saidx_t) * (1LL << 23));
+   divsufsort64((unsigned char *)orig, SA, orignum);
    int pos;
    int len = 0, scan = 0, lastscan = 0, lastpos = 0, lastoffset = 0;
    int scsc;
@@ -154,11 +155,15 @@ int main(int argc, const char **argv) {
             lenf += lens - overlap;
             lenb -= lens;
          }
+         /*
          Action act = SEEK;
          fwrite(&act, 1, 1, stdout);
          // size_t len = (pos - lenb) - (lastpos + lenf);
+         // */
+         /*
          size_t len = lastscan;
          fwrite(&len, sizeof(len), 1, stdout);
+         */
          fwrite(&lastpos, sizeof(lastpos), 1, stdout);
          /*
          Action act = NEWSEEK;
@@ -168,28 +173,32 @@ int main(int argc, const char **argv) {
          */
 
          int tmp = 0;
-         if (lenf > 0) {
-            act = ADD;
-            fwrite(&act, 1, 1, stdout);
-            fwrite(&tmp, 1, 1, stdout);
-            fwrite(&lenf, 4, 1, stdout);
-            for (int j = 0; j < lenf; j++) {
-               char tmpchar = new[lastscan + j] - orig[lastpos + j];
-               fwrite(&tmpchar, 1, 1, stdout);
-            }
+         // if (lenf > 0) {
+         /*
+         act = ADD;
+         fwrite(&act, 1, 1, stdout);
+         fwrite(&tmp, 1, 1, stdout);
+         */
+         fwrite(&lenf, 4, 1, stdout);
+         for (int j = 0; j < lenf; j++) {
+            char tmpchar = new[lastscan + j] - orig[lastpos + j];
+            fwrite(&tmpchar, 1, 1, stdout);
          }
+         //}
 
          tmp = (scan - lenb) - (lastscan + lenf);
          // fprintf(stderr, "%d, %d, %d, %d, %d\n", scan, newnum, tmp, lenf,
          // lastscan);
-         if (tmp > 0) {
-            // newnum を超過しているときに newnumに合わせる
-            if (lastscan + lenf + tmp > newnum) {
-               tmp = newnum - (lastscan + lenf);
-            }
+         // newnum を超過しているときに newnumに合わせる
+         if (lastscan + lenf + tmp > newnum) {
+            tmp = newnum - (lastscan + lenf);
+         }
+         if (tmp >= 0) {
+            /*
             act = INSERT;
             fwrite(&act, sizeof(act), 1, stdout);
             fwrite(&lenf, 1, 1, stdout);
+            */
             fwrite(&tmp, 4, 1, stdout);
             fwrite(&new[lastscan + lenf], 1, tmp, stdout);
          }

@@ -1,4 +1,4 @@
-CFLAGS=	-Wall -Wextra -g -ldivsufsort
+CFLAGS=	-Wall -Wextra -g -ldivsufsort64
 all:	diff patch view
 
 diff:	common.h common.o

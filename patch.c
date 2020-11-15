@@ -26,7 +26,33 @@ int main(int argc, const char **argv) {
    size_t cnt;
    Action action;
    size_t i = 0;
-   unsigned int len;
+   int len;
+
+   while (!feof(fp)) {
+      // SEEK
+      if (fread(&i, 4, 1, fp) == 0) {
+         break;
+      }
+
+      // ADD
+      assert(fread(&len, 4, 1, fp) > 0);
+      assert(len >= 0);
+      for (int j = 0; j < len; j++) {
+         assert(fread(&new_num, 1, 1, fp) > 0);
+         putchar(new_num + orig[i]);
+         i++;
+      }
+
+      // INSERT
+      if (fread(&len, 4, 1, fp) == 0) {
+         break;
+      }
+      for (unsigned long j = 0; j < len; j++) {
+         assert(fread(&new_num, 1, 1, fp) >= 0);
+         putchar(new_num);
+      }
+   }
+   /*
    for (cnt = 0; !feof(fp); cnt++) {
       prev_index = index;
 
@@ -35,11 +61,6 @@ int main(int argc, const char **argv) {
       if ((Action)action == SEEK) {
          fread(&index, sizeof(index), 1, fp);
          fread(&i, 4, 1, fp);
-         /*
-         while (i < index && i < orignum) {
-            putchar(orig[i]);
-            i++;
-         }*/
          continue;
       }
       assert(fread(&index_delta, sizeof(index_delta), 1, fp) > 0);
@@ -52,12 +73,6 @@ int main(int argc, const char **argv) {
          break;
       }
 
-      /*
-      while (i < index && i < orignum) {
-         putchar(orig[i]);
-         i++;
-      }
-      */
       assert(fread(&len, 4, 1, fp) > 0);
 
       //      unsigned int act2 = len & (1 << 7);
@@ -103,12 +118,8 @@ int main(int argc, const char **argv) {
             exit(-1);
       }
    }
-   /*
-   while (i < orignum) {
-      putchar(orig[i]);
-      i++;
-   }*/
    // fprintf(stderr, "cnt: %ld\n", cnt);
+   */
    fclose(fp);
    return 0;
 }
