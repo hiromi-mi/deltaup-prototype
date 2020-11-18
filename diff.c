@@ -1,5 +1,6 @@
 #include "common.h"
 #include <assert.h>
+#include <elf.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,6 +12,9 @@
 #define i_whole (i + wind_cnt * (WINDOW_SIZE - 1))
 
 #define INTEGRATE_MAX (255 - 1)
+
+int diff(const char *orig, const size_t orignum, const char *new,
+         const size_t newnum);
 
 // from bsdiff
 // License: LICENSE.bsdiff
@@ -49,18 +53,15 @@ long long search(const long *SA, const char *orig, size_t origlen,
    }
 }
 
+int diff_elf(const char *orig, const size_t orignum, const char *new,
+             const size_t newnum) {
+   return diff(orig, orignum, new, newnum);
+}
+
 // algorithm from bsdiff
 // License: LICENSE.bsdiff
-int main(int argc, const char **argv) {
-   if (argc <= 2) {
-      fprintf(stderr, "Usage: oldfile newfile\n");
-      exit(-1);
-   }
-
-   size_t orignum, newnum;
-   char *orig = read_file(argv[1], &orignum);
-   char *new = read_file(argv[2], &newnum);
-
+int diff(const char *orig, const size_t orignum, const char *new,
+         const size_t newnum) {
    long *SA = malloc(sizeof(saidx_t) * (1LL << 23));
    assert(divsufsort64((unsigned char *)orig, SA, orignum) == 0);
    // assert(sufcheck64((unsigned char *)orig, SA, orignum, 0) == 0);
@@ -193,8 +194,27 @@ int main(int argc, const char **argv) {
       }
    }
 
+   free(SA);
+   return 0;
+}
+
+int main(int argc, const char **argv) {
+   if (argc <= 2) {
+      fprintf(stderr, "Usage: oldfile newfile\n");
+      exit(-1);
+   }
+
+   size_t orignum, newnum;
+   char *orig = read_file(argv[1], &orignum);
+   char *new = read_file(argv[2], &newnum);
+
+   if (orignum >= 4 && orig[0] == 0x7f && orig[1] == 'E' && orig[2] == 'L' &&
+       orig[3] == 'F') {
+      diff_elf(orig, orignum, new, newnum);
+   } else {
+      diff(orig, orignum, new, newnum);
+   }
    free(orig);
    free(new);
-   free(SA);
    return 0;
 }
