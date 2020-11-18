@@ -28,12 +28,16 @@ int main(int argc, const char **argv) {
    size_t i = 0;
    long long len;
    long long insertlen;
+   size_t i_delta = 0;
+   size_t prev_i = 0;
 
    while (!feof(fp)) {
       // SEEK
-      if (fread(&i, sizeof(i), 1, fp) == 0) {
+      if (fread(&i_delta, sizeof(i_delta), 1, fp) == 0) {
          break;
       }
+      prev_i += i_delta;
+      i = prev_i;
 
       // ADD
       assert(fread(&len, sizeof(len), 1, fp) > 0);

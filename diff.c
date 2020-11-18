@@ -73,6 +73,8 @@ int main(int argc, const char **argv) {
    long long Sf = 0;
    long long lenf = 0;
    long long lenb = 0, Sb = 0;
+
+   unsigned long long prev_lastpos = 0;
    while (scan < newnum) {
       unsigned long long oldscore = 0;
       // scan sucessor
@@ -174,7 +176,8 @@ int main(int argc, const char **argv) {
          size_t len = lastscan;
          fwrite(&len, sizeof(len), 1, stdout);
          */
-         fwrite(&lastpos, sizeof(lastpos), 1, stdout);
+         long long tmp2 = lastpos - (long long)prev_lastpos;
+         fwrite(&tmp2, sizeof(tmp2), 1, stdout);
          /*
          Action act = NEWSEEK;
          fwrite(&act, 1, 1, stdout);
@@ -200,7 +203,7 @@ int main(int argc, const char **argv) {
          }
          fwrite(&tmp, sizeof(tmp), 1, stdout);
 
-         fprintf(stderr, "%lld,%lld,%lld,%lld\n", len, lenf, tmp, lastpos);
+         fprintf(stderr, "%lld,%lld,%lld,%lld\n", len, lenf, tmp, tmp2);
 
          for (long long j = 0; j < lenf; j++) {
             char tmpchar = new[lastscan + j] - orig[lastpos + j];
@@ -217,6 +220,7 @@ int main(int argc, const char **argv) {
          }
 
          lastscan = scan - lenb;
+         prev_lastpos = lastpos;
          lastpos = pos - lenb;
          lastoffset = pos - scan;
       }
