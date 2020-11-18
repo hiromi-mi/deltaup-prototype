@@ -5,4 +5,5 @@ test/*.result
 diff
 patch
 view
+*.bz2
 *.o

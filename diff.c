@@ -69,10 +69,8 @@ int main(int argc, const char **argv) {
    unsigned long long len = 0, scan = 0, lastscan = 0, lastpos = 0,
                       lastoffset = 0;
    unsigned long long scsc;
-   long long s = 0;
-   long long Sf = 0;
    long long lenf = 0;
-   long long lenb = 0, Sb = 0;
+   long long lenb = 0;
 
    unsigned long long prev_lastpos = 0;
    while (scan < newnum) {
@@ -112,9 +110,9 @@ int main(int argc, const char **argv) {
       }
 
       if ((len != oldscore) || (scan == newnum)) {
+         long long s = 0;
+         long long Sf = 0;
          lenf = 0;
-         s = 0;
-         Sf = 0;
          // 前回の一致点から前方探索
          // max. (一致した文字数*2 - 全体の文字数) を計算
          for (long long i = 0; (lastscan + i < scan) &&
@@ -133,8 +131,8 @@ int main(int argc, const char **argv) {
          // max. (一致した文字数*2 - 全体の文字数) を計算
          lenb = 0;
          if (scan < newnum) {
-            s = 0;
-            Sb = 0;
+            long long s = 0;
+            long long Sb = 0;
             for (long long i = 1; (scan >= lastscan + i) && (pos >= i); i++) {
                if (orig[pos - i] == new[scan - i]) {
                   s++;
@@ -174,8 +172,6 @@ int main(int argc, const char **argv) {
          fwrite(&lenf, sizeof(lenf), 1, stdout);
 
          tmp = (scan - lenb) - (lastscan + lenf);
-         // fprintf(stderr, "%d, %d, %d, %d, %d\n", scan, newnum, tmp, lenf,
-         // lastscan);
          // newnum を超過しているときに newnumに合わせる
          if (lastscan + lenf + tmp > newnum) {
             tmp = min(newnum - (lastscan + lenf), 0);
