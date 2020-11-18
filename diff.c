@@ -166,25 +166,28 @@ int diff(const char *orig, const size_t orignum, const char *new,
             lenf += lens - overlap;
             lenb -= lens;
          }
-         long long tmp2 = lastpos - (long long)prev_lastpos;
-         fwrite(&tmp2, sizeof(tmp2), 1, stdout);
+         long long lastpos_delta = lastpos - (long long)prev_lastpos;
+         fwrite(&lastpos_delta, sizeof(lastpos_delta), 1, stdout);
 
-         long long tmp = 0;
          fwrite(&lenf, sizeof(lenf), 1, stdout);
 
-         tmp = (scan - lenb) - (lastscan + lenf);
-         // newnum を超過しているときに newnumに合わせる
-         if (lastscan + lenf + tmp > newnum) {
-            tmp = min(newnum - (lastscan + lenf), 0);
+         long long insert_len = 0;
+         insert_len = (scan - lenb) - (lastscan + lenf);
+         // insert_len が newnum を超過しているときに newnumに合わせる
+         if (lastscan + lenf + insert_len > newnum) {
+            insert_len = min(newnum - (lastscan + lenf), 0);
          }
-         fwrite(&tmp, sizeof(tmp), 1, stdout);
+         fwrite(&insert_len, sizeof(insert_len), 1, stdout);
 
+         // ADD
          for (long long j = 0; j < lenf; j++) {
             char tmpchar = new[lastscan + j] - orig[lastpos + j];
             fwrite(&tmpchar, 1, 1, stdout);
          }
-         if (tmp >= 0) {
-            fwrite(&new[lastscan + lenf], 1, tmp, stdout);
+
+         // INSERT
+         if (insert_len >= 0) {
+            fwrite(&new[lastscan + lenf], 1, insert_len, stdout);
          }
 
          lastscan = scan - lenb;
