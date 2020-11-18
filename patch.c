@@ -26,16 +26,21 @@ int main(int argc, const char **argv) {
    size_t cnt;
    Action action;
    size_t i = 0;
-   int len;
+   long long len;
+   long long insertlen;
 
    while (!feof(fp)) {
       // SEEK
-      if (fread(&i, 4, 1, fp) == 0) {
+      if (fread(&i, sizeof(i), 1, fp) == 0) {
          break;
       }
 
       // ADD
-      assert(fread(&len, 4, 1, fp) > 0);
+      assert(fread(&len, sizeof(len), 1, fp) > 0);
+      // INSERT
+      if (fread(&insertlen, sizeof(insertlen), 1, fp) == 0) {
+         break;
+      }
       assert(len >= 0);
       for (int j = 0; j < len; j++) {
          assert(fread(&new_num, 1, 1, fp) > 0);
@@ -43,12 +48,8 @@ int main(int argc, const char **argv) {
          i++;
       }
 
-      // INSERT
-      if (fread(&len, 4, 1, fp) == 0) {
-         break;
-      }
-      for (unsigned long j = 0; j < len; j++) {
-         assert(fread(&new_num, 1, 1, fp) >= 0);
+      for (unsigned long j = 0; j < insertlen; j++) {
+         assert(fread(&new_num, 1, 1, fp) > 0);
          putchar(new_num);
       }
    }

@@ -14,9 +14,10 @@
 
 // from bsdiff
 // License: LICENSE.bsdiff
-int matchlen(const char *orig, size_t origlen, const char *new, size_t newlen) {
+long long matchlen(const char *orig, size_t origlen, const char *new,
+                   size_t newlen) {
    size_t i = 0;
-   for (; i < origlen && i < newlen; i++) {
+   for (; (i < origlen) && (i < newlen); i++) {
       if (orig[i] != new[i])
          break;
    }
@@ -26,10 +27,12 @@ int matchlen(const char *orig, size_t origlen, const char *new, size_t newlen) {
 // from bsdiff
 // License: LICENSE.bsdiff
 long long search(const long *SA, const char *orig, size_t origlen,
-                 const char *new, size_t newlen, int start, int end, int *pos) {
+                 const char *new, size_t newlen, long long start, long long end,
+                 long long *pos) {
    if (end - start < 2) {
-      int s = matchlen(orig + SA[start], origlen - SA[start], new, newlen);
-      int e = matchlen(orig + SA[end], origlen - SA[end], new, newlen);
+      long long s =
+          matchlen(orig + SA[start], origlen - SA[start], new, newlen);
+      long long e = matchlen(orig + SA[end], origlen - SA[end], new, newlen);
       if (s > e) {
          *pos = SA[start];
          return s;
@@ -38,7 +41,7 @@ long long search(const long *SA, const char *orig, size_t origlen,
          return e;
       }
    }
-   int x = start + (end - start) / 2;
+   long long x = start + (end - start) / 2;
    if (memcmp(orig + SA[x], new, min(origlen - SA[x], newlen)) < 0) {
       return search(SA, orig, origlen, new, newlen, x, end, pos);
    } else {
@@ -59,18 +62,24 @@ int main(int argc, const char **argv) {
    char *new = read_file(argv[2], &newnum);
 
    long *SA = malloc(sizeof(saidx_t) * (1LL << 23));
-   divsufsort64((unsigned char *)orig, SA, orignum);
-   int pos;
-   int len = 0, scan = 0, lastscan = 0, lastpos = 0, lastoffset = 0;
-   int scsc;
-   int s = 0, Sf = 0, lenf = 0;
-   int lenb = 0, Sb = 0;
+   assert(divsufsort64((unsigned char *)orig, SA, orignum) == 0);
+
+   assert(sufcheck64((unsigned char *)orig, SA, orignum, 0) == 0);
+   long long pos;
+   unsigned long long len = 0, scan = 0, lastscan = 0, lastpos = 0,
+                      lastoffset = 0;
+   unsigned long long scsc;
+   long long s = 0;
+   long long Sf = 0;
+   long long lenf = 0;
+   long long lenb = 0, Sb = 0;
    while (scan < newnum) {
-      int oldscore = 0;
+      unsigned long long oldscore = 0;
       // scan sucessor
-      scsc = scan += len;
-      for (; scan < newnum; scan++) {
-         len = search(SA, orig, orignum, new, newnum, 0, orignum, &pos);
+      for (scsc = scan += len; scan < newnum; scan++) {
+         // ここが new+scan, newnum-scan になってた
+         len = search(SA, orig, orignum, new + scan, newnum - scan, 0, orignum,
+                      &pos);
 
          // 今回一致範囲 [scan ... scan+len]
          // と前回一致範囲の続きの一致バイト数を徐々に増やしていくl
@@ -106,8 +115,9 @@ int main(int argc, const char **argv) {
          Sf = 0;
          // 前回の一致点から前方探索
          // max. (一致した文字数*2 - 全体の文字数) を計算
-         for (int i = 0; (lastscan + i < scan) && (lastpos + i < orignum) &&
-                         (lastscan + i < newnum);) {
+         for (long long i = 0; (lastscan + i < scan) &&
+                               (lastpos + i < orignum) &&
+                               (lastscan + i < newnum);) {
             if (orig[lastpos + i] == new[lastscan + i]) {
                s++;
             }
@@ -123,7 +133,7 @@ int main(int argc, const char **argv) {
          if (scan < newnum) {
             s = 0;
             Sb = 0;
-            for (int i = 1; (scan >= lastscan + i) && (pos >= i); i++) {
+            for (long long i = 1; (scan >= lastscan + i) && (pos >= i); i++) {
                if (orig[pos - i] == new[scan - i]) {
                   s++;
                }
@@ -135,10 +145,10 @@ int main(int argc, const char **argv) {
          }
 
          if (lastscan + lenf > scan - lenb) {
-            int overlap = (lastscan + lenf) - (scan - lenb);
-            int s = 0;
-            int lens = 0, Ss = 0;
-            for (int i = 0; i < overlap; i++) {
+            long long overlap = (lastscan + lenf) - (scan - lenb);
+            long long s = 0;
+            long long lens = 0, Ss = 0;
+            for (long long i = 0; i < overlap; i++) {
                if (new[lastscan + lenf - overlap + i] ==
                    orig[lastpos + lenf - overlap + i]) {
                   s++;
@@ -172,34 +182,37 @@ int main(int argc, const char **argv) {
          fwrite(&len, sizeof(len), 1, stdout);
          */
 
-         int tmp = 0;
+         long long tmp = 0;
          // if (lenf > 0) {
          /*
          act = ADD;
          fwrite(&act, 1, 1, stdout);
          fwrite(&tmp, 1, 1, stdout);
          */
-         fwrite(&lenf, 4, 1, stdout);
-         for (int j = 0; j < lenf; j++) {
-            char tmpchar = new[lastscan + j] - orig[lastpos + j];
-            fwrite(&tmpchar, 1, 1, stdout);
-         }
-         //}
+         fwrite(&lenf, sizeof(lenf), 1, stdout);
 
          tmp = (scan - lenb) - (lastscan + lenf);
          // fprintf(stderr, "%d, %d, %d, %d, %d\n", scan, newnum, tmp, lenf,
          // lastscan);
          // newnum を超過しているときに newnumに合わせる
          if (lastscan + lenf + tmp > newnum) {
-            tmp = newnum - (lastscan + lenf);
+            tmp = min(newnum - (lastscan + lenf), 0);
          }
+         fwrite(&tmp, sizeof(tmp), 1, stdout);
+
+         fprintf(stderr, "%lld,%lld,%lld,%lld\n", len, lenf, tmp, lastpos);
+
+         for (long long j = 0; j < lenf; j++) {
+            char tmpchar = new[lastscan + j] - orig[lastpos + j];
+            fwrite(&tmpchar, 1, 1, stdout);
+         }
+         //}
          if (tmp >= 0) {
             /*
             act = INSERT;
             fwrite(&act, sizeof(act), 1, stdout);
             fwrite(&lenf, 1, 1, stdout);
             */
-            fwrite(&tmp, 4, 1, stdout);
             fwrite(&new[lastscan + lenf], 1, tmp, stdout);
          }
 
