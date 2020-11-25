@@ -55,6 +55,20 @@ long long search(const long *SA, const char *orig, size_t origlen,
 
 int diff_elf(const char *orig, const size_t orignum, const char *new,
              const size_t newnum) {
+   Elf64_Ehdr orig_eh, new_eh;
+   memcpy(&orig_eh, orig, sizeof(orig_eh));
+   memcpy(&new_eh, new, sizeof(new_eh));
+   Elf64_Shdr orig_sh, new_sh;
+
+   for (int i = 0; i < min(orig_eh->e_shnum, new_eh->e_shnum); i++) {
+      memcpy(&orig_sh, &orig[i * orig_eh->e_shentsize + orig_eh->e_shoff],
+             sizeof(orig_sh));
+      memcpy(&new_sh, &new[i * new_eh->e_shentsize + new_eh->e_shoff],
+             sizeof(new_sh));
+
+      // strncmp(orig[orig_sh->sh_name]
+   }
+
    return diff(orig, orignum, new, newnum);
 }
 
